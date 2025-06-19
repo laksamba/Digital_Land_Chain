@@ -20,7 +20,7 @@ const kycSchema = new mongoose.Schema({
   citizenshipNumber: {
     type: String,
     required: true,
-    unique: true,
+    sparse: true,
   },
   citizenshipIssuedDistrict: {
     type: String,
@@ -82,11 +82,12 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true, // Hashed using bcrypt
+    required: true,
   },
   role: {
     type: String,
     enum: ['admin', 'citizen', 'land_officer', 'bank_officer', 'survey_officer'],
+    default: 'citizen', 
     required: true,
   },
   walletAddress: {
