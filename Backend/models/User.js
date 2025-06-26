@@ -13,14 +13,11 @@ const kycSchema = new mongoose.Schema({
     bs: { type: String }, // e.g., "2050-05-15"
     ad: { type: Date },
   },
-  documentNumber: {
-    type: String,
-    required: true,
-  },
   citizenshipNumber: {
     type: String,
-    required: true,
+    unique: true,
     sparse: true,
+    required: false,
   },
   citizenshipIssuedDistrict: {
     type: String,
@@ -40,10 +37,7 @@ const kycSchema = new mongoose.Schema({
     {
       type: {
         type: String,
-        enum: [
-          "citizenship_front",
-          "citizenship_back",
-        ],
+        enum: ["citizenship_front", "citizenship_back"],
       },
       url: { type: String, required: true },
     },
@@ -86,8 +80,14 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'citizen', 'land_officer', 'bank_officer', 'survey_officer'],
-    default: 'citizen', 
+    enum: [
+      "admin",
+      "citizen",
+      "land_officer",
+      "bank_officer",
+      "survey_officer",
+    ],
+    default: "citizen",
     required: true,
   },
   walletAddress: {
@@ -107,4 +107,4 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);

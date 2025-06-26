@@ -3,6 +3,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import cloudinary from '../config/cloudinary.js';
+import { Readable } from 'stream';
 
 
 
@@ -52,6 +54,19 @@ export const registerUser = async (req, res, next) => {
 };
 
 // Submit KYC details
+const uploadToCloudinary = (buffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    Readable.from(buffer).pipe(stream);
+  });
+};
+
 export const submitKyc = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.userId);
@@ -64,34 +79,55 @@ export const submitKyc = async (req, res, next) => {
     }
 
     const {
-      fullName,
+      'fullName.english': fullNameEnglish,
+      'fullName.nepali': fullNameNepali,
       documentType,
       dateOfBirth,
-      documentNumber,
       citizenshipNumber,
       citizenshipIssuedDistrict,
       citizenshipIssuedDate,
-      photo,
-      documents,
     } = req.body;
 
-    // Check if citizenship number is unique
     const existingKyc = await User.findOne({ 'kyc.citizenshipNumber': citizenshipNumber });
     if (existingKyc && existingKyc._id.toString() !== user._id.toString()) {
       return res.status(400).json({ error: 'Citizenship number already registered' });
     }
 
-    // Update KYC details
+      const fullName = {
+      english: fullNameEnglish,
+      nepali: fullNameNepali,
+    };
+
+    // Upload photo
+    const photoFile = req.files['photo']?.[0];
+    const photoUrl = photoFile
+      ? await uploadToCloudinary(photoFile.buffer, 'kyc/photos')
+      : null;
+
+    // Upload documents
+    // ✅ Upload documents and attach type if passed from body
+    const documents = req.files['documents'] || [];
+    const documentTypes = req.body.documentsType; // from frontend, must match order
+    const documentUrls = [];
+
+    for (let i = 0; i < documents.length; i++) {
+      const url = await uploadToCloudinary(documents[i].buffer, 'kyc/documents');
+      documentUrls.push({
+        type: Array.isArray(documentTypes) ? documentTypes[i] : documentTypes,
+        url,
+      });
+    }
+
+
+    // Save KYC
     user.kyc = {
       fullName,
       documentType,
       dateOfBirth,
-      documentNumber,
-      citizenshipNumber,
       citizenshipIssuedDistrict,
       citizenshipIssuedDate,
-      photo,
-      documents,
+      photo: photoUrl,
+      documents: documentUrls,
       verificationStatus: 'Pending',
       verified: false,
       createdAt: Date.now(),
@@ -164,6 +200,7 @@ export const loginUser = async (req, res, next) => {
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     res.status(200).json({
+      success: true,
       message: 'Login successful',
       token,
       user: { id: user._id, name: user.name, role: user.role, email: user.email },

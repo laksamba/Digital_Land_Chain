@@ -2,7 +2,8 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DigitalLandChain from "./pages/LandingPage";
-import CitizenForm from "./Kycform";
+import CitizenForm from "./pages/Kycform";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/kyc" element={<CitizenForm/>} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </BrowserRouter>
   )

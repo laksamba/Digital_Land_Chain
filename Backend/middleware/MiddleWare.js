@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 // Authentication Middleware: Verifies JWT token
 export const authMiddleware = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
+  console.log("Token received:", token);
   
   if (!token) {
     return res.status(401).json({ error: 'Access denied. No token provided.' });
