@@ -13,7 +13,9 @@ export const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Attach user data (e.g., userId, role) to request
+    req.user = decoded; 
+    console.log("Decoded JWT user:", req.user);
+
     next();
   } catch (error) {
      console.error("JWT Verification Error:", error.message);

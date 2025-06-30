@@ -1,50 +1,63 @@
+import mongoose from "mongoose";
+
 const landSchema = new mongoose.Schema({
   landId: {
     type: String, // Comes from blockchain
     unique: true,
-    default: null
+    default: null,
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    ref: "User",
+    required: true,
   },
   location: {
     type: String,
-    required: true
+    required: true,
   },
   area: {
     type: Number,
-    required: true
+    required: true,
   },
 
   // 📁 Temporary document paths (before verification)
-  tempDocuments: [{
-    type: String, // Local/S3 path
-  }],
+  tempDocuments: [
+    {
+      type: String, // Local/S3 path
+    },
+  ],
 
   // 📦 Documents uploaded to IPFS (after verification)
-  ipfsDocuments: [{
-    type: String, // IPFS CID
-  }],
+  ipfsDocuments: [
+    {
+      type: String, // IPFS CID
+    },
+  ],
 
   // 📦 Optional: JSON metadata of the land uploaded to IPFS
   ipfsLandMeta: {
-    type: String // IPFS CID of JSON metadata
+    type: String, // IPFS CID of JSON metadata
+  },
+
+  requestId: {
+    type: String, // or Number depending on how contract emits it
+    default: null,
   },
 
   status: {
     type: String,
-    enum: ['pending', 'verified', 'rejected'],
-    default: 'pending'
+    enum: ["pending", "verified", "rejected"],
+    default: "pending",
   },
   verifiedAt: Date,
   createdAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   updatedAt: {
     type: Date,
-    default: Date.now
-  }
+    default: Date.now,
+  },
 });
+const Land = mongoose.model("Land", landSchema);
+export default Land;

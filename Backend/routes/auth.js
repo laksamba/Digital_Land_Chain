@@ -1,8 +1,9 @@
 import express from 'express';
-import { registerUser, submitKyc,verifyKyc, loginUser } from '../controllers/UserController.js';
+import { registerUser, submitKyc,verifyKyc, loginUser } from '../controllers/UsersController/UserController.js';
 import { authMiddleware, checkKyc , restrictTo,} from '../middleware/MiddleWare.js';
 import { registerValidator } from '../middleware/registerValidator.js';
 import upload from '../middleware/multer.js';
+import { getUserDetails } from '../controllers/UsersController/getUserDetaits.js';
 
 
 const router = express.Router();
@@ -21,6 +22,8 @@ router.post('/kyc',authMiddleware,upload.fields([
 router.post('/kyc/verify',authMiddleware,restrictTo('land_officer'),verifyKyc );
 
 // login Route
-router.post('/login', authMiddleware, loginUser);
+router.post('/login', loginUser);
+
+router.get('/user', authMiddleware, getUserDetails);
 
 export default router;
