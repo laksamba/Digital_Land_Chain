@@ -223,7 +223,7 @@ export const loginUser = async (req, res, next) => {
       kycStatus: user.kyc.verificationStatus || "pending",
     };
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
-      expiresIn: "1d",
+      expiresIn: "30d",
     });
 
     res.status(200).json({
