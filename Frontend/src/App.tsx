@@ -3,7 +3,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DigitalLandChain from "./pages/LandingPage";
 import CitizenForm from "./pages/Kycform";
-import Dashboard from "./pages/Dashboard";
+
+import AdminDashboard from "./pages/AdminDashboard/AdminPage";
+
 
 function App() {
 
@@ -15,7 +17,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/kyc" element={<CitizenForm/>} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/Admimdashboard" element={<AdminDashboard />} />
       </Routes>
     </BrowserRouter>
   )
