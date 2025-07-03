@@ -207,13 +207,16 @@ export const loginUser = async (req, res, next) => {
     }
 
     // Check KYC status
-    if (
-      !user.kyc ||
-      user.kyc.verificationStatus !== "Verified" ||
-      !user.kyc.verified
-    ) {
-      return res.status(403).json({ error: "KYC not completed or verified" });
-    }
+if (user.role !== "admin") {
+  if (
+    !user.kyc ||
+    user.kyc.verificationStatus !== "Verified" ||
+    !user.kyc.verified
+  ) {
+    return res.status(403).json({ error: "KYC not completed or verified" });
+  }
+}
+
 
     // Generate JWT
    const payload = {

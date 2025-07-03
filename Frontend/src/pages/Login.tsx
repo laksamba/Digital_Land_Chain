@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, LogIn, AlertCircle, CheckCircle, X } from "lucide-react";
 import { loginUser } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../Redux/auth/authSlice.ts";
 
 interface LoginFormData {
   email: string;
@@ -24,6 +26,7 @@ const Login: React.FC = () => {
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const Navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Toast functions
   const addToast = (type: 'success' | 'error' | 'info', message: string) => {
@@ -76,41 +79,49 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      addToast('error', 'Please fix the errors below');
-      return;
-    }
-    
-    setLoading(true);
-    
-    try {
-      const {email, password} = formData;
-      
-      const response = await loginUser({ email, password });
-      const isSuccess = response.success; 
-      
-      if (isSuccess) {
-        addToast('success', 'Login successful! Welcome back.');
-        console.log("Logging in with:", formData);
+ const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-        // Redirect to dashboard or home page after successful login
-        Navigate('/dashboard'); 
-        
-        
-        
+  if (!validateForm()) {
+    addToast("error", "Please fix the errors below");
+    return;
+  }
 
-      } else {
-        addToast('error', 'Invalid email or password. Please try again.');
-      }
-    } catch (error) {
-      addToast('error', 'Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
+  setLoading(true);
+
+  try {
+    const { email, password } = formData;
+
+    const response = await loginUser({ email, password });
+
+    if (response.success) {
+      const { token, user } = response;
+
+      //  Dispatch to Redux
+      dispatch(
+        loginSuccess({
+          token,
+          user,
+          role: user.role,
+        })
+      );
+
+      addToast("success", "Login successful! Welcome back.");
+
+      //  Role-based navigation
+      if (user.role === "admin") Navigate("/admindashboard");
+      else if (user.role === "landOfficer") Navigate("/land-officer");
+      else if (user.role === "user") Navigate("/user");
+      else Navigate("/unauthorized");
+    } else {
+      addToast("error", "Invalid email or password. Please try again.");
     }
-  };
+  } catch (error) {
+    addToast("error", "Something went wrong. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleForgotPassword = () => {
     if (!formData.email) {
