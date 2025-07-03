@@ -5,9 +5,12 @@ import { getQuickStats } from '../controllers/AdminController/QuickStates.js';
 import { getSystemHealth } from '../controllers/AdminController/systemHealth.js';
 import { getRecentActivity } from '../controllers/AdminController/recentActivity.js';
 import {  getUserById, updateUser, deleteUser } from '../controllers/AdminController/userManagemet.js';
+import { authMiddleware, restrictTo } from '../middleware/MiddleWare.js';
 
 
 const router = express.Router();
+
+router.use(authMiddleware,restrictTo("admin"));
 
 // Assign Land Officer Role (blockchain)
 router.post("/userRole/:userId", assignUserRoleWithBlockchain);

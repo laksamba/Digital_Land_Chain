@@ -15,6 +15,7 @@ export const submitLandRegistration = asyncHandler(async (req, res) => {
   const files = req.files;
 
   if (!req.user || !req.user.userId) {
+    
     return res.status(401).json({ error: "Unauthorized: Missing user ID" });
   }
 

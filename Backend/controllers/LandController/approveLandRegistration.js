@@ -51,9 +51,11 @@ export const approveLandRegistration = asyncHandler(async (req, res) => {
     return res.status(500).json({ message: 'Metadata upload to IPFS failed', error: error.message });
   }
 
-  // Interact with blockchain
+ // Interact with blockchain
   let blockchainHash;
   let landId;
+  let landHash;
+
   try {
     const txApprove = await contract.approveRegistrationRequest(requestId);
     const receiptApprove = await txApprove.wait();
@@ -66,8 +68,11 @@ export const approveLandRegistration = asyncHandler(async (req, res) => {
 
     const txVerify = await contract.verifyLand(landId);
     const receiptVerify = await txVerify.wait();
-
     blockchainHash = receiptVerify.hash;
+
+    // Fetch landHash from contract
+    const landData = await contract.getLand(landId);
+    landHash = landData.landHash;
   } catch (error) {
     return res.status(500).json({ message: 'Blockchain approval failed', error: error.message });
   }
@@ -75,6 +80,7 @@ export const approveLandRegistration = asyncHandler(async (req, res) => {
   // Save to MongoDB
   land.landId = landId;
   land.ipfsLandMeta = ipfsMetaCid;
+  land.landHash = landHash; 
   land.status = 'verified';
   land.verifiedAt = new Date();
   land.tempDocuments = [];

@@ -6,6 +6,7 @@ import authRoutes from './routes/auth.js';
 import landRoutes from './routes/landRoutes.js';
 import { errorHandler } from './middleware/MiddleWare.js';
 import adminRoutes from './routes/adminRoutes.js';
+import transferRoutes from './routes/transferRoutes.js';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use((req, res, next) => {
 app.use('/api', authRoutes);
 app.use('/api',landRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/transfer", transferRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

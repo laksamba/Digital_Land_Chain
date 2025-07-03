@@ -19,6 +19,10 @@ const landSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  
+  landHash: {
+  type: String, // Store as hex string
+},
 
   // 📁 Temporary document paths (before verification)
   tempDocuments: [

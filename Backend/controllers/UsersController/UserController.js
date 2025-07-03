@@ -216,12 +216,13 @@ export const loginUser = async (req, res, next) => {
     }
 
     // Generate JWT
-    const payload = {
-      userId: user.userId,
-      role: user.role,
-      ethaddress: user.walletAddress,
-      kycStatus: user.kyc.verificationStatus || "pending",
-    };
+   const payload = {
+  userId: user._id.toString(), // ✅ CORRECT: MongoDB ID
+  role: user.role,
+  walletAddress: user.walletAddress,
+  kycStatus: user.kyc.verificationStatus || "pending",
+};
+
     const token = jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
