@@ -1,4 +1,3 @@
-
 import { useState } from "react"
 import {
   Shield,
@@ -12,6 +11,7 @@ import {
   AlertTriangle,
   Search,
 } from "lucide-react"
+import { assignUserRole, fetchAllUsers } from "../../api/adminApi"
 
 interface AssignmentResponse {
   message: string
@@ -40,51 +40,36 @@ export default function AdminRoleAssignment() {
   const [response, setResponse] = useState<AssignmentResponse | null>(null)
   const [error, setError] = useState("")
 
-  // Mock user search - in real app, this would be an API call
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<
-    {
-      _id: string
-      name: string
-      email: string
-      walletAddress?: string
-      role: string
-    }[]
-  >([])
-  const [selectedUser, setSelectedUser] = useState<{
-    _id: string
-    name: string
-    email: string
-    walletAddress?: string
-    role: string
-  } | null>(null)
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [selectedUser, setSelectedUser] = useState<any>(null)
 
-  const mockUsers = [
-    { _id: "1", name: "John Doe", email: "john@example.com", walletAddress: "0x1234...5678", role: "citizen" },
-    { _id: "2", name: "Jane Smith", email: "jane@example.com", walletAddress: "0xabcd...efgh", role: "bank" },
-    { _id: "3", name: "Bob Wilson", email: "bob@example.com", walletAddress: "", role: "citizen" },
-  ]
+  const handleSearch = async () => {
+  if (searchQuery.trim()) {
+    try {
+      const result = await fetchAllUsers();
+      const users = result.user || result.users || []; 
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      const results = mockUsers.filter(
-        (user) =>
-          user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          user.email.toLowerCase().includes(searchQuery.toLowerCase()),
-      )
-      setSearchResults(results)
-    } else {
-      setSearchResults([])
+      if (!Array.isArray(users)) {
+        throw new Error("Invalid users format");
+      }
+
+      const filtered = users.filter((user: any) =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setSearchResults(filtered);
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      setError("Failed to fetch users");
     }
+  } else {
+    setSearchResults([]);
   }
+};
 
-  const selectUser = (user: {
-    _id: string
-    name: string
-    email: string
-    walletAddress?: string
-    role: string
-  }) => {
+
+  const selectUser = (user: any) => {
     setSelectedUser(user)
     setUserId(user._id)
     setSearchResults([])
@@ -104,25 +89,21 @@ export default function AdminRoleAssignment() {
     setResponse(null)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // Mock response based on role type
+      const res = await assignUserRole(userId, selectedRole)
       const roleConfig = ROLES.find((r) => r.value === selectedRole)
       const mockResponse: AssignmentResponse = {
-        message: roleConfig?.requiresBlockchain
+        message: res.message || (roleConfig?.requiresBlockchain
           ? "Role updated in DB and smart contract"
-          : `Role '${selectedRole}' assigned in database only (no blockchain interaction)`,
+          : `Role '${selectedRole}' assigned in database only (no blockchain interaction)`),
         user: { ...selectedUser!, role: selectedRole },
-        ...(roleConfig?.requiresBlockchain && { txHash: "0x1234567890abcdef..." }),
+        ...(res.txHash && { txHash: res.txHash }),
       }
-
       setResponse(mockResponse)
       if (selectedUser) {
         setSelectedUser({ ...selectedUser, role: selectedRole })
       }
-    } catch (err) {
-      setError("Failed to assign role. Please try again.")
+    } catch (err: any) {
+      setError(err?.error || "Failed to assign role. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -139,10 +120,14 @@ export default function AdminRoleAssignment() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6 ">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Admin Role Assignment</h1>
-        <p className="text-gray-600 mt-2">Assign roles to users with blockchain support</p>
+        <h1 className="text-3xl font-bold text-gray-900">
+          Admin Role Assignment
+        </h1>
+        <p className="text-gray-600 mt-2">
+          Assign roles to users with blockchain support
+        </p>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -151,9 +136,13 @@ export default function AdminRoleAssignment() {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-5 h-5 text-gray-700" />
-              <h2 className="text-lg font-semibold text-gray-900">Select User</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Select User
+              </h2>
             </div>
-            <p className="text-sm text-gray-600">Search and select a user to assign a role</p>
+            <p className="text-sm text-gray-600">
+              Search and select a user to assign a role
+            </p>
           </div>
           <div className="p-6 space-y-4">
             <div className="flex gap-2">
@@ -193,7 +182,11 @@ export default function AdminRoleAssignment() {
                         {user.role}
                       </span>
                     </div>
-                    {user.walletAddress && <p className="text-xs text-gray-500 mt-1">Wallet: {user.walletAddress}</p>}
+                    {user.walletAddress && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Wallet: {user.walletAddress}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -203,17 +196,25 @@ export default function AdminRoleAssignment() {
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-10 h-10 rounded-full ${getRoleColor(selectedUser.role)} flex items-center justify-center`}
+                    className={`w-10 h-10 rounded-full ${getRoleColor(
+                      selectedUser.role
+                    )} flex items-center justify-center`}
                   >
                     {(() => {
-                      const IconComponent = getRoleIcon(selectedUser.role)
-                      return <IconComponent className="w-5 h-5 text-white" />
+                      const IconComponent = getRoleIcon(selectedUser.role);
+                      return <IconComponent className="w-5 h-5 text-white" />;
                     })()}
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{selectedUser.name}</p>
-                    <p className="text-sm text-gray-600">{selectedUser.email}</p>
-                    <p className="text-xs text-gray-500">Current role: {selectedUser.role}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedUser.name}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {selectedUser.email}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Current role: {selectedUser.role}
+                    </p>
                   </div>
                 </div>
                 {selectedUser.walletAddress ? (
@@ -237,13 +238,20 @@ export default function AdminRoleAssignment() {
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center gap-2 mb-2">
               <Shield className="w-5 h-5 text-gray-700" />
-              <h2 className="text-lg font-semibold text-gray-900">Assign Role</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Assign Role
+              </h2>
             </div>
-            <p className="text-sm text-gray-600">Select a role to assign to the user</p>
+            <p className="text-sm text-gray-600">
+              Select a role to assign to the user
+            </p>
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="role"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Role
               </label>
               <select
@@ -257,7 +265,9 @@ export default function AdminRoleAssignment() {
                   <option
                     key={role.value}
                     value={role.value}
-                    disabled={role.requiresBlockchain && !selectedUser?.walletAddress}
+                    disabled={
+                      role.requiresBlockchain && !selectedUser?.walletAddress
+                    }
                   >
                     {role.label} {role.requiresBlockchain ? "(Blockchain)" : ""}
                   </option>
@@ -269,21 +279,23 @@ export default function AdminRoleAssignment() {
               <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   {(() => {
-                    const role = ROLES.find((r) => r.value === selectedRole)
-                    const IconComponent = role?.icon || Users
-                    return <IconComponent className="w-4 h-4 text-gray-700" />
+                    const role = ROLES.find((r) => r.value === selectedRole);
+                    const IconComponent = role?.icon || Users;
+                    return <IconComponent className="w-4 h-4 text-gray-700" />;
                   })()}
                   <span className="font-medium text-gray-900">
                     {ROLES.find((r) => r.value === selectedRole)?.label}
                   </span>
-                  {ROLES.find((r) => r.value === selectedRole)?.requiresBlockchain && (
+                  {ROLES.find((r) => r.value === selectedRole)
+                    ?.requiresBlockchain && (
                     <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                       Blockchain
                     </span>
                   )}
                 </div>
                 <p className="text-sm text-gray-600">
-                  {ROLES.find((r) => r.value === selectedRole)?.requiresBlockchain
+                  {ROLES.find((r) => r.value === selectedRole)
+                    ?.requiresBlockchain
                     ? "This role requires blockchain interaction and will be recorded on-chain."
                     : "This role will be stored in the database only."}
                 </p>
@@ -318,7 +330,9 @@ export default function AdminRoleAssignment() {
               ) : (
                 <XCircle className="w-5 h-5 text-red-500" />
               )}
-              <h2 className="text-lg font-semibold text-gray-900">Assignment Result</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Assignment Result
+              </h2>
             </div>
           </div>
           <div className="p-6">
@@ -344,8 +358,12 @@ export default function AdminRoleAssignment() {
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-blue-900">Blockchain Transaction</p>
-                        <p className="text-sm text-blue-700">Transaction Hash:</p>
+                        <p className="font-medium text-blue-900">
+                          Blockchain Transaction
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          Transaction Hash:
+                        </p>
                         <code className="text-xs bg-blue-100 px-2 py-1 rounded mt-1 inline-block text-blue-800">
                           {response.txHash}
                         </code>
@@ -361,20 +379,30 @@ export default function AdminRoleAssignment() {
                 <hr className="border-gray-200" />
 
                 <div>
-                  <p className="font-medium mb-2 text-gray-900">Updated User Information:</p>
+                  <p className="font-medium mb-2 text-gray-900">
+                    Updated User Information:
+                  </p>
                   <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-full ${getRoleColor(response.user.role)} flex items-center justify-center`}
+                        className={`w-8 h-8 rounded-full ${getRoleColor(
+                          response.user.role
+                        )} flex items-center justify-center`}
                       >
                         {(() => {
-                          const IconComponent = getRoleIcon(response.user.role)
-                          return <IconComponent className="w-4 h-4 text-white" />
+                          const IconComponent = getRoleIcon(response.user.role);
+                          return (
+                            <IconComponent className="w-4 h-4 text-white" />
+                          );
                         })()}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{response.user.name}</p>
-                        <p className="text-sm text-gray-600">Role: {response.user.role}</p>
+                        <p className="font-medium text-gray-900">
+                          {response.user.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Role: {response.user.role}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -385,5 +413,5 @@ export default function AdminRoleAssignment() {
         </div>
       )}
     </div>
-  )
+  );
 }

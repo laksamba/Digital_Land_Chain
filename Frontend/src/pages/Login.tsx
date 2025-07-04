@@ -111,13 +111,18 @@ const Login: React.FC = () => {
       //  Role-based navigation
       if (user.role === "admin") Navigate("/admindashboard");
       else if (user.role === "landOfficer") Navigate("/land-officer");
-      else if (user.role === "user") Navigate("/user");
+      else if (user.role === "citizen") Navigate("/citizendashboard");
       else Navigate("/unauthorized");
     } else {
       addToast("error", "Invalid email or password. Please try again.");
     }
-  } catch (error) {
-    addToast("error", "Something went wrong. Please try again.");
+  } catch (error: any) {
+    const errorMessage =
+    error?.response?.data?.error ||
+    error?.response?.data?.message ||
+    "An unexpected error occurred. Please try again.";
+
+  addToast("error", errorMessage);
   } finally {
     setLoading(false);
   }

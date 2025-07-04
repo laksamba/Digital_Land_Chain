@@ -9,6 +9,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { userKyc } from "../api/userApi";
+import { Link } from "react-router-dom";
 
 interface UserData {
   fullName: {
@@ -770,9 +771,12 @@ const handleDocumentUpload = (
                     </div>
                   </div>
 
-                  <button className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 rounded-xl text-white font-semibold hover:from-blue-600 hover:to-purple-700 transition-all">
-                    Continue to Dashboard
-                  </button>
+                  <Link
+                    to="/login"
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 rounded-xl text-white font-semibold hover:from-blue-600 hover:to-purple-700 transition-all mt-6 inline-block" 
+                  >
+                    Go to Login
+                  </Link>
                 </>
               ) : (
                 <div className="space-y-4">

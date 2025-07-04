@@ -9,6 +9,7 @@ import AdminDashboard from "./pages/AdminDashboard/AdminPage";
 import { store } from "./Redux/store";
 import AuthRoleRoute from "./components/AuthRolesRoute";
 import Unauthorized from "./components/Unauthorized";
+import CitizenDashboard from "./pages/CitizenDashboard/CitizenDashboard";
 
 function App() {
   return (
@@ -27,6 +28,16 @@ function App() {
             element={
               <AuthRoleRoute allowedRoles={["admin"]}>
                 <AdminDashboard />
+              </AuthRoleRoute>
+            }
+          />
+
+          {/* citizen dashboard routes */}
+          <Route
+            path="/citizendashboard"
+            element={
+              <AuthRoleRoute allowedRoles={["citizen"]}>
+                <CitizenDashboard />
               </AuthRoleRoute>
             }
           />

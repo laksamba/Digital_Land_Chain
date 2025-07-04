@@ -1,12 +1,19 @@
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DashboardOverview } from "./DashboardOverview"
 import { AdminSidebar } from "./AdminSidebar"
 import { UserManagement } from "./UserManagemet"
-
+import AdminRoleAssignment from "./RolesMangement"
 
 export default function AdminDashboard() {
-  const [activeSection, setActiveSection] = useState("overview")
+  // Load initial section from localStorage or fallback to "overview"
+  const [activeSection, setActiveSection] = useState(() => {
+    return localStorage.getItem("activeSection") || "overview"
+  })
+
+  // Save section to localStorage when changed
+  useEffect(() => {
+    localStorage.setItem("activeSection", activeSection)
+  }, [activeSection])
 
   const renderContent = () => {
     switch (activeSection) {
@@ -14,7 +21,8 @@ export default function AdminDashboard() {
         return <DashboardOverview />
       case "users":
         return <UserManagement />
-      
+      case "roles":
+        return <AdminRoleAssignment />
       default:
         return <DashboardOverview />
     }

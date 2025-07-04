@@ -39,7 +39,7 @@ router.post(
 );
 
 // login Route
-router.post("/login",checkKyc, loginUser);
+router.post("/login", loginUser);
 
 router.get("/user", authMiddleware, getUserDetails);
 

@@ -111,7 +111,6 @@ export const submitKyc = async (req, res, next) => {
       : null;
 
     // Upload documents
-    // ✅ Upload documents and attach type if passed from body
     const documents = req.files["documents"] || [];
     const documentTypes = req.body.documentsType; // from frontend, must match order
     const documentUrls = [];
@@ -220,10 +219,10 @@ if (user.role !== "admin") {
 
     // Generate JWT
    const payload = {
-  userId: user._id.toString(), // ✅ CORRECT: MongoDB ID
+  userId: user._id.toString(), 
   role: user.role,
   walletAddress: user.walletAddress,
-  kycStatus: user.kyc.verificationStatus || "pending",
+  kycStatus: user.kyc?.verificationStatus || "pending",
 };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, {

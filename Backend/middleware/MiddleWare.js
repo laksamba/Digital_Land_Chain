@@ -38,11 +38,20 @@ export const restrictTo = (...allowedRoles) => {
 
 // KYC Verification Middleware
 export const checkKyc = (req, res, next) => {
+  // If user is admin, skip KYC check
+  console.log("Checking KYC for user:", req.user?.email);
+  if (req.user?.role === 'admin') {
+    return next();
+  }
+
+  // For other roles, enforce KYC verification
   if (!req.user || req.user.kycStatus !== 'Verified') {
     return res.status(403).json({ error: 'KYC not verified. Access denied.' });
   }
+
   next();
 };
+
 
 
 // Error Handling Middleware
