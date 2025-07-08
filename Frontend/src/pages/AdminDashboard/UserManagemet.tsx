@@ -187,12 +187,14 @@ export function UserManagement() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.verified
-                              ? "bg-green-100 text-green-800"
+                            user.kyc?.verificationStatus
+                              ? user.kyc.verificationStatus === "Verified"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {user.verified ? "Verified" : "Unverified"}
+                          {user.kyc?.verificationStatus === "Verified" ? "Verified" : "Unverified"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

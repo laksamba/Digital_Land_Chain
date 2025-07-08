@@ -13,6 +13,7 @@ import {
 import { registerValidator } from "../middleware/registerValidator.js";
 import upload from "../middleware/multer.js";
 import { getUserDetails } from "../controllers/UsersController/getUserDetaits.js";
+import { fetchAllKycRecords } from "../controllers/UsersController/getKycDetails.js";
 
 const router = express.Router();
 
@@ -36,6 +37,17 @@ router.post(
   authMiddleware,
   restrictTo("land_officer"),
   verifyKyc
+);
+
+// fetch kyc records
+router.get(
+  "/kyc/records",
+  authMiddleware,
+  restrictTo("land_officer"),
+  fetchAllKycRecords,
+  (req, res) => {
+    res.status(200).json(req.kycRecords);
+  }
 );
 
 // login Route

@@ -84,11 +84,21 @@ export const submitKyc = async (req, res, next) => {
       "fullName.english": fullNameEnglish,
       "fullName.nepali": fullNameNepali,
       documentType,
-      dateOfBirth,
+      "dateOfBirth.bs": dateOfBirthBs,
+      "dateOfBirth.ad": dateOfBirthAd,
       citizenshipNumber,
       citizenshipIssuedDistrict,
-      citizenshipIssuedDate,
+      "citizenshipIssuedDate.bs": issuedDateBs,
+      "citizenshipIssuedDate.ad": issuedDateAd,
     } = req.body;
+
+    // Validate date strings
+    const dobAd = new Date(dateOfBirthAd);
+    const issuedAd = new Date(issuedDateAd);
+
+    if (isNaN(dobAd.getTime()) || isNaN(issuedAd.getTime())) {
+      return res.status(400).json({ error: "Invalid AD date format provided" });
+    }
 
     const existingKyc = await User.findOne({
       "kyc.citizenshipNumber": citizenshipNumber,
@@ -112,7 +122,7 @@ export const submitKyc = async (req, res, next) => {
 
     // Upload documents
     const documents = req.files["documents"] || [];
-    const documentTypes = req.body.documentsType; // from frontend, must match order
+    const documentTypes = req.body.documentsType;
     const documentUrls = [];
 
     for (let i = 0; i < documents.length; i++) {
@@ -126,13 +136,19 @@ export const submitKyc = async (req, res, next) => {
       });
     }
 
-    // Save KYC
     user.kyc = {
       fullName,
       documentType,
-      dateOfBirth,
+      dateOfBirth: {
+        bs: dateOfBirthBs,
+        ad: dobAd,
+      },
+      citizenshipNumber,
       citizenshipIssuedDistrict,
-      citizenshipIssuedDate,
+      citizenshipIssuedDate: {
+        bs: issuedDateBs,
+        ad: issuedAd,
+      },
       photo: photoUrl,
       documents: documentUrls,
       verificationStatus: "Pending",
@@ -149,6 +165,8 @@ export const submitKyc = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 // Verify KYC by Land Officer
 export const verifyKyc = async (req, res, next) => {
@@ -206,7 +224,7 @@ export const loginUser = async (req, res, next) => {
     }
 
     // Check KYC status
-if (user.role !== "admin") {
+if (user.role !== "admin" && user.role !== "land_officer") {
   if (
     !user.kyc ||
     user.kyc.verificationStatus !== "Verified" ||

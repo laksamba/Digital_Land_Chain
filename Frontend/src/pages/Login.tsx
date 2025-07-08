@@ -110,7 +110,7 @@ const Login: React.FC = () => {
 
       //  Role-based navigation
       if (user.role === "admin") Navigate("/admindashboard");
-      else if (user.role === "landOfficer") Navigate("/land-officer");
+      else if (user.role === "land_officer") Navigate("/Officerdashboard");
       else if (user.role === "citizen") Navigate("/citizendashboard");
       else Navigate("/unauthorized");
     } else {

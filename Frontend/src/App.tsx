@@ -10,6 +10,7 @@ import { store } from "./Redux/store";
 import AuthRoleRoute from "./components/AuthRolesRoute";
 import Unauthorized from "./components/Unauthorized";
 import CitizenDashboard from "./pages/CitizenDashboard/CitizenDashboard";
+import LandOfficerDashboard from "./pages/OfficerDashboard/DashboardPage";
 
 function App() {
   return (
@@ -38,6 +39,16 @@ function App() {
             element={
               <AuthRoleRoute allowedRoles={["citizen"]}>
                 <CitizenDashboard />
+              </AuthRoleRoute>
+            }
+          />
+
+          {/* officer dashboard routes */}
+          <Route
+            path="/Officerdashboard"
+            element={
+              <AuthRoleRoute allowedRoles={["land_officer"]}>
+                <LandOfficerDashboard />
               </AuthRoleRoute>
             }
           />

@@ -35,13 +35,26 @@ export const userKyc = async (kycData: FormData) => {
 };
 
 
-// userkyc 
+// userkyc  verify || aprove
 export const verifyKyc = async (kycData: any) => {
   try {
     const response = await axiosInstance.post("/kyc/verify", kycData);
     return response.data;
   } catch (error) {
     console.error("Error submitting KYC:", error);
+    throw error; 
+  }
+}
+
+
+
+// fetch KYC list
+export const fetchKycList = async () => {
+  try {
+    const response = await axiosInstance.get("/kyc/records");
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching KYC list:", error);
     throw error; 
   }
 }

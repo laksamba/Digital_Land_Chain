@@ -84,6 +84,14 @@ const Register: React.FC = () => {
   };
 
   const handleWalletConnect = async () => {
+    if (walletConnected) {
+      // Disconnect wallet (frontend-only)
+      setFormData((prev) => ({ ...prev, walletAddress: "" }));
+      setWalletConnected(false);
+      toast.info("Wallet disconnected.");
+      return;
+    }
+
     try {
       if (!window.ethereum) {
         toast.error("MetaMask is not installed.");
@@ -360,25 +368,26 @@ const Register: React.FC = () => {
               <button
                 type="button"
                 onClick={handleWalletConnect}
-                disabled={loading || walletConnected}
+                disabled={loading}
                 className={`w-full flex items-center justify-center py-3 rounded-xl font-semibold text-white transition-all duration-300 transform hover:scale-105 ${
                   walletConnected
-                    ? "bg-green-500 hover:bg-green-600"
+                    ? "bg-red-500 hover:bg-red-600"
                     : "bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700"
                 } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
               >
-                {loading && !walletConnected ? (
+                {loading ? (
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                 ) : walletConnected ? (
-                  <CheckCircle className="w-5 h-5 mr-2" />
+                  <>
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    Disconnect Wallet
+                  </>
                 ) : (
-                  <Wallet className="w-5 h-5 mr-2" />
+                  <>
+                    <Wallet className="w-5 h-5 mr-2" />
+                    Connect Wallet
+                  </>
                 )}
-                {walletConnected
-                  ? "Wallet Connected"
-                  : loading
-                  ? "Connecting..."
-                  : "Connect Wallet"}
               </button>
             </div>
 

@@ -98,51 +98,50 @@ const KYCForm: React.FC = () => {
   const frontDocRef = useRef<HTMLInputElement>(null);
   const backDocRef = useRef<HTMLInputElement>(null);
 
- const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    const preview = URL.createObjectURL(file); // for image preview
-    setUploadedPhoto(preview); // show preview
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const preview = URL.createObjectURL(file); // for image preview
+      setUploadedPhoto(preview); // show preview
 
-    setUserData((prev) => ({
-      ...prev,
-      photo: file, // ✅ store the File, not base64
-    }));
-  }
-};
+      setUserData((prev) => ({
+        ...prev,
+        photo: file, // ✅ store the File, not base64
+      }));
+    }
+  };
 
-const handleDocumentUpload = (
-  event: React.ChangeEvent<HTMLInputElement>,
-  docType: string
-) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    const previewUrl = URL.createObjectURL(file);
+  const handleDocumentUpload = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    docType: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const previewUrl = URL.createObjectURL(file);
 
-    setUploadedDocuments((prev) => ({
-      ...prev,
-      [docType]: previewUrl,
-    }));
+      setUploadedDocuments((prev) => ({
+        ...prev,
+        [docType]: previewUrl,
+      }));
 
-    setUserData((prev) => {
-      const updatedDocuments = [...prev.documents];
-      const existingIndex = updatedDocuments.findIndex(
-        (doc) => doc.type === docType
-      );
+      setUserData((prev) => {
+        const updatedDocuments = [...prev.documents];
+        const existingIndex = updatedDocuments.findIndex(
+          (doc) => doc.type === docType
+        );
 
-      const newDoc = { type: docType, file };
+        const newDoc = { type: docType, file };
 
-      if (existingIndex >= 0) {
-        updatedDocuments[existingIndex] = newDoc;
-      } else {
-        updatedDocuments.push(newDoc);
-      }
+        if (existingIndex >= 0) {
+          updatedDocuments[existingIndex] = newDoc;
+        } else {
+          updatedDocuments.push(newDoc);
+        }
 
-      return { ...prev, documents: updatedDocuments };
-    });
-  }
-};
-
+        return { ...prev, documents: updatedDocuments };
+      });
+    }
+  };
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length <= 1 && /^\d*$/.test(value)) {
@@ -179,27 +178,27 @@ const handleDocumentUpload = (
       formData.append("fullName.nepali", data.fullName.nepali);
 
       formData.append("documentType", data.documentType);
-      formData.append("dateOfBirthBs", data.dateOfBirth.bs);
-      formData.append("dateOfBirthAd", data.dateOfBirth.ad);
+      formData.append("dateOfBirth.bs", data.dateOfBirth.bs);
+      formData.append("dateOfBirth.ad", data.dateOfBirth.ad);
       formData.append("citizenshipNumber", data.citizenshipNumber);
       formData.append(
         "citizenshipIssuedDistrict",
         data.citizenshipIssuedDistrict
       );
-      formData.append("citizenshipIssuedDateBs", data.citizenshipIssuedDate.bs);
-      formData.append("citizenshipIssuedDateAd", data.citizenshipIssuedDate.ad);
+      formData.append("citizenshipIssuedDate.bs", data.citizenshipIssuedDate.bs);
+formData.append("citizenshipIssuedDate.ad", data.citizenshipIssuedDate.ad);
 
       if (data.photo instanceof File) {
-      formData.append("photo", data.photo);
-    } else {
-      console.warn("Photo is not a File. Skipping upload.");
-    }
-      
-     data.documents.forEach((doc, _idx) => {
-  if (doc.file) {
-    formData.append("documents", doc.file); 
-  }
-});
+        formData.append("photo", data.photo);
+      } else {
+        console.warn("Photo is not a File. Skipping upload.");
+      }
+
+      data.documents.forEach((doc, _idx) => {
+        if (doc.file) {
+          formData.append("documents", doc.file);
+        }
+      });
 
       const response = await userKyc(formData); // actual API call
 
@@ -773,7 +772,7 @@ const handleDocumentUpload = (
 
                   <Link
                     to="/login"
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 rounded-xl text-white font-semibold hover:from-blue-600 hover:to-purple-700 transition-all mt-6 inline-block" 
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-3 rounded-xl text-white font-semibold hover:from-blue-600 hover:to-purple-700 transition-all mt-6 inline-block"
                   >
                     Go to Login
                   </Link>
