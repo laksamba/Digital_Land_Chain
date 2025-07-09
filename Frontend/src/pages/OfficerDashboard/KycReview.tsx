@@ -21,8 +21,6 @@ type KycItem = {
   documents: KycDocument[];
   submittedDate: string;
   status: string;
-
-  // Extended fields from backend
   name: string;
   email: string;
   walletAddress: string;

@@ -43,7 +43,6 @@ router.post(
 router.get(
   "/kyc/records",
   authMiddleware,
-  restrictTo("land_officer"),
   fetchAllKycRecords,
   (req, res) => {
     res.status(200).json(req.kycRecords);

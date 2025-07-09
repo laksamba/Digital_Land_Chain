@@ -36,6 +36,7 @@ export const fetchAllKycRecords = async (req, res) => {
           verified: kyc.verified || false,
           createdAt: kyc.createdAt?.toISOString() || "",
           _id: kyc._id?.toString() || "",
+          verifiedAt: kyc.verifiedAt ? kyc.verifiedAt.toISOString() : "",
         }
       };
     });

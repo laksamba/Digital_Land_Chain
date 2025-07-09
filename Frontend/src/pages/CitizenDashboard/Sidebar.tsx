@@ -1,3 +1,4 @@
+"use client"
 
 import {
   Home,
@@ -12,12 +13,22 @@ import {
   CheckCircle,
   Settings,
 } from "lucide-react"
+import { useEffect, useState } from "react"
+
 
 interface SidebarProps {
   activeSection: string
   setActiveSection: (section: string) => void
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
+}
+
+interface UserType {
+  name: string
+  email: string
+  role: string
+  id: string
+  kycStatus: boolean
 }
 
 const sidebarItems = [
@@ -32,12 +43,25 @@ const sidebarItems = [
 ]
 
 export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSidebarOpen }: SidebarProps) {
+  const [user, setUser] = useState<UserType | null>(null)
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser)
+        console.log("userdetail", parsedUser)
+        setUser(parsedUser)
+      } catch (error) {
+        console.error("Failed to parse user from localStorage:", error)
+      }
+    }
+  }, [])
+
   return (
     <div
-      className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out flex flex-col shadow-lg
-        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-      `}
+      className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out flex flex-col shadow-lg
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -57,27 +81,37 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
       <div className="p-4 border-b border-gray-200 bg-gray-50/50">
         <div className="flex items-center gap-3 mb-3">
           <div className="h-12 w-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
-            JD
+            {user?.name?.slice(0, 2).toUpperCase() || "??"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm truncate text-gray-900">John Doe</p>
-            <p className="text-xs text-gray-500 truncate">john.doe@example.com</p>
-            <p className="text-xs text-gray-500">ID: CIT-2024-001</p>
+            <p className="font-semibold text-sm truncate text-gray-900">{user?.name || "Unknown User"}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email || "No Email"}</p>
+            <p className="text-xs text-gray-500">ID: {user?.id?.slice(0, 8).toUpperCase()}</p>
           </div>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-500">KYC Status</span>
-            <div className="flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded-full">
+            <div
+              className={`flex items-center gap-1 px-2 py-1 rounded-full ${
+                user?.kycStatus
+                  ? "bg-green-100 text-green-800"
+                  : "bg-yellow-100 text-yellow-800"
+              }`}
+            >
               <CheckCircle className="h-3 w-3" />
-              <span className="font-medium">Verified</span>
+              <span className="font-medium">
+                {user?.kycStatus ? "Verified" : "Pending"}
+              </span>
             </div>
           </div>
+
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-500">Properties Owned</span>
             <span className="font-medium text-gray-900">2</span>
           </div>
+
           <div className="flex items-center justify-between text-xs">
             <span className="text-gray-500">Active Transfers</span>
             <span className="font-medium text-gray-900">1</span>
@@ -91,10 +125,11 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
         {sidebarItems.map((item) => (
           <button
             key={item.id}
-            className={`
-              w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
-              ${activeSection === item.id ? "bg-blue-600 text-white shadow-sm" : "text-gray-700 hover:bg-gray-100"}
-            `}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
+              activeSection === item.id
+                ? "bg-blue-600 text-white shadow-sm"
+                : "text-gray-700 hover:bg-gray-100"
+            }`}
             onClick={() => {
               setActiveSection(item.id)
               setSidebarOpen(false)
@@ -107,11 +142,9 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500 text-center">
-          <p>© 2024 Land Registry</p>
-          <p>Secure • Transparent • Digital</p>
-        </div>
+      <div className="p-4 border-t border-gray-200 text-xs text-gray-500 text-center">
+        <p>© 2024 Land Registry</p>
+        <p>Secure • Transparent • Digital</p>
       </div>
     </div>
   )
