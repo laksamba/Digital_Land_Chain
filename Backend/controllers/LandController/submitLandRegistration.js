@@ -40,7 +40,7 @@ export const submitLandRegistration = asyncHandler(async (req, res) => {
     }
   }
 
-  // 📝 Prepare metadata and hash
+  //  Prepare metadata and hash
   const metadata = { owner: ownerDetails, location, area, documentCIDs: ipfsDocuments };
   let landHash;
 
@@ -51,7 +51,7 @@ export const submitLandRegistration = asyncHandler(async (req, res) => {
     return res.status(500).json({ message: 'Metadata hashing failed', error: err.message });
   }
 
-  // 📦 Submit to Blockchain
+  //  Submit to Blockchain
   let requestId;
   try {
     const tx = await contract.submitRegistrationRequest(landHash);
@@ -78,6 +78,7 @@ export const submitLandRegistration = asyncHandler(async (req, res) => {
   });
 
   const savedLand = await land.save();
+  console.log('Saved land:', savedLand);
 
   res.status(201).json({
     message: 'Land registration submitted',

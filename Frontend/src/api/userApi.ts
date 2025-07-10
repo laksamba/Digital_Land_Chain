@@ -58,3 +58,17 @@ export const fetchKycList = async () => {
     throw error; 
   }
 }
+
+
+// land registration API call
+export const registerLand = async (data:FormData) => {
+  try {
+    const response = await axiosInstance.post("/submit",data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error registering land:", error);
+    throw error; 
+  }
+}

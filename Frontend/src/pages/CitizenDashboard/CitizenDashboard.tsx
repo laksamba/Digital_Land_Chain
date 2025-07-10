@@ -1,5 +1,6 @@
+"use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sidebar } from "./Sidebar"
 import { Header } from "./Header"
 import { MyLands } from "./section/MyLands"
@@ -8,12 +9,25 @@ import { TransferLand } from "./section/TransferLand"
 import { VerifyCertificate } from "./section/VerifyCertificate"
 import { KYCStatus } from "./section/KycStatus"
 import { TransactionHistory } from "./section/TransactionHistory"
-
 import { ProfileSettings } from "./section/ProfileSetting"
+import LandRegistrationForm from "./section/LandRegistry"
 
 export default function CitizenDashboard() {
-  const [activeSection, setActiveSection] = useState("my-lands")
+  const [activeSection, setActiveSectionState] = useState("my-lands")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Wrapper to also save to localStorage
+  const setActiveSection = (section: string) => {
+    localStorage.setItem("activeSection", section)
+    setActiveSectionState(section)
+  }
+
+  useEffect(() => {
+    const storedSection = localStorage.getItem("activeSection")
+    if (storedSection) {
+      setActiveSectionState(storedSection)
+    }
+  }, [])
 
   const renderContent = () => {
     switch (activeSection) {
@@ -31,6 +45,8 @@ export default function CitizenDashboard() {
         return <TransactionHistory />
       case "profile":
         return <ProfileSettings />
+      case "upload":
+        return <LandRegistrationForm />
       default:
         return <MyLands />
     }

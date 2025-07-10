@@ -28,7 +28,6 @@ interface UserType {
   email: string
   role: string
   id: string
-  kycStatus: boolean
 }
 
 const sidebarItems = [
@@ -38,7 +37,7 @@ const sidebarItems = [
   { id: "verify", label: "Verify Certificate", icon: Shield },
   { id: "kyc", label: "KYC Status", icon: User },
   { id: "history", label: "Transaction History", icon: History },
-  { id: "upload", label: "Upload Documents", icon: Upload },
+  { id: "upload", label: "Land Registration", icon: Upload },
   { id: "profile", label: "Profile Settings", icon: Settings },
 ]
 
@@ -95,14 +94,14 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
             <span className="text-gray-500">KYC Status</span>
             <div
               className={`flex items-center gap-1 px-2 py-1 rounded-full ${
-                user?.kycStatus
+                user?.role === "citizen"
                   ? "bg-green-100 text-green-800"
                   : "bg-yellow-100 text-yellow-800"
               }`}
             >
               <CheckCircle className="h-3 w-3" />
               <span className="font-medium">
-                {user?.kycStatus ? "Verified" : "Pending"}
+               Verified
               </span>
             </div>
           </div>

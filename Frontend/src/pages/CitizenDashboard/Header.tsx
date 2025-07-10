@@ -1,14 +1,37 @@
 
 
-import { useState } from "react"
-import { Menu, Bell, LogOut, Settings, User, ChevronDown } from "lucide-react"
+import { useEffect, useState } from "react"
+import { Menu, Bell, Settings, User, ChevronDown } from "lucide-react"
+import LogoutButton from "../../components/Logout"
 
 interface HeaderProps {
   setSidebarOpen: (open: boolean) => void
 }
 
+
+interface UserType {
+  name: string
+  email: string
+  role: string
+  id: string
+}
+
 export function Header({ setSidebarOpen }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [user, setUser] = useState<UserType | null>(null)
+
+   useEffect(() => {
+      const storedUser = localStorage.getItem("user")
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser)
+          console.log("userdetail", parsedUser)
+          setUser(parsedUser)
+        } catch (error) {
+          console.error("Failed to parse user from localStorage:", error)
+        }
+      }
+    }, [])
 
   return (
     <header className="bg-white border-b border-gray-200 p-4 shadow-sm">
@@ -42,10 +65,10 @@ export function Header({ setSidebarOpen }: HeaderProps) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
             >
               <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-semibold">
-                JD
+                {user?.name?.slice(0, 2).toUpperCase() || "??"}
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium text-gray-900">John Doe</p>
+                <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-500">Verified Citizen</p>
               </div>
               <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -62,10 +85,7 @@ export function Header({ setSidebarOpen }: HeaderProps) {
                   Settings
                 </button>
                 <hr className="my-1 border-gray-200" />
-                <button className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                  <LogOut className="h-4 w-4" />
-                  Log out
-                </button>
+                  <LogoutButton/>
               </div>
             )}
           </div>
