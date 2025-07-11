@@ -1,18 +1,25 @@
-import Land from '../../models/Land.js';
-
+import mongoose from "mongoose";
+import Land from "../../models/Land.js";
 
 export const getLandWithOwnerDetails = async (req, res) => {
+  const userId = req.params.id;
+  console.log("→ getLandWithOwnerDetails called with userId:", userId);
+
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    console.warn("Invalid ObjectId:", userId);
+    return res.status(400).json({ message: "Invalid user ID" });
+  }
+
   try {
-    const landId = req.params.id; 
+    const lands = await Land.find({ owner: userId }).populate("owner");
+    console.log("→ lands fetched:", lands);
 
-    
-    const land = await Land.findById(landId).populate('owner');
-
-    if (!land) {
-      return res.status(404).json({ message: 'Land not found' });
+    if (!lands || lands.length === 0) {
+      return res.status(404).json({ message: "No lands found for this user" });
     }
-    res.json({ land });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(200).json(lands);
+  } catch (err) {
+    console.error("Error fetching lands:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };

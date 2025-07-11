@@ -72,3 +72,16 @@ export const registerLand = async (data:FormData) => {
     throw error; 
   }
 }
+
+
+// fetch user lands
+export const fetchUserLands = async (userId: string) => {
+  try {
+    const response = await axiosInstance.get(`/land/${userId}`);
+    console.log("Fetched land response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching user lands:", error);
+    throw error; 
+  }
+}

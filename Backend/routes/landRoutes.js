@@ -24,6 +24,7 @@ router.put(
 
 router.get(
   "/land/:id",
+  authMiddleware,
   restrictTo("citizen", "land_officer"),
   getLandWithOwnerDetails
 );

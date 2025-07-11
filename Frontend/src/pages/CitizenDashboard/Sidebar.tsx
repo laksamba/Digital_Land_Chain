@@ -46,6 +46,7 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
+    console.log("Stored User:", storedUser)
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser)
@@ -142,7 +143,7 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
 
       {/* Footer */}
       <div className="p-4 border-t border-gray-200 text-xs text-gray-500 text-center">
-        <p>© 2024 Land Registry</p>
+        <p>© 2025 Land Registry</p>
         <p>Secure • Transparent • Digital</p>
       </div>
     </div>

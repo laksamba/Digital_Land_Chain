@@ -105,6 +105,19 @@ const Login: React.FC = () => {
           role: user.role,
         })
       );
+      // Store decoded user info in localStorage
+  localStorage.setItem(
+    "user",
+    JSON.stringify({
+      id: user._id, 
+      role: user.role,
+      walletAddress: user.walletAddress,
+      kycStatus: user.kyc.verificationStatus,
+    })
+  );
+
+  // Store token (optional, but useful)
+  localStorage.setItem("token", token);
 
       addToast("success", "Login successful! Welcome back.");
 
