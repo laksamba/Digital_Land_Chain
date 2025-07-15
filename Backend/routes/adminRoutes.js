@@ -10,7 +10,7 @@ import { authMiddleware, restrictTo } from '../middleware/MiddleWare.js';
 
 const router = express.Router();
 
-router.use(authMiddleware,restrictTo("admin"));
+router.use(authMiddleware,restrictTo("admin","land_officer"));
 
 // Assign Land Officer Role (blockchain)
 router.post("/userRole/:userId", assignUserRoleWithBlockchain);

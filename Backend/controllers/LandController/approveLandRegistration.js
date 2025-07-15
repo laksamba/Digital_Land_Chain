@@ -3,6 +3,7 @@ import Land from "../../models/Land.js";
 import { contract, pinata } from "../../utils/Blockchain.js";
 
 export const approveLandRegistration = asyncHandler(async (req, res) => {
+  console.log("✅ Controller HIT");
   console.log('Request body:', req.body);
   const { id } = req.params;
   const { status, requestId } = req.body;

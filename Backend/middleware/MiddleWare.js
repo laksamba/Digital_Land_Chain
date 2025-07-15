@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 
 // Authentication Middleware: Verifies JWT token
 export const authMiddleware = (req, res, next) => {
+  console.log("🔥 authMiddleware hit");
   const token = req.header('Authorization')?.replace('Bearer ', '');
   console.log("Token received:", token);
   
@@ -25,6 +26,7 @@ export const authMiddleware = (req, res, next) => {
 
 // Role-Based Access Control Middleware
 export const restrictTo = (...allowedRoles) => {
+   
   return (req, res, next) => {
     console.log("Authenticated User Role:", req.user.role);
 

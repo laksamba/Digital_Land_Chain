@@ -22,6 +22,16 @@ export const getDashboardMetrics = asyncHandler(async (req, res) => {
   //  Transactions
   const pendingTransactions = await Transaction.countDocuments({ status: "pending" });
 
+   // Count users with pending KYC
+  const pendingKyc = await User.countDocuments({ "kyc.verificationStatus": "Pending" });
+
+
+  // Count lands with pending registration
+  const pendingLandRegistry = await Land.countDocuments({ status: "pending" });
+
+  // Count land transfer transactions with pending status
+  const pendingLandTransfer = await Transaction.countDocuments({ status: "pending" });
+
   //  User Roles
   const totalCitizens = await User.countDocuments({ role: "citizen" });
   const totalSurveyOfficers = await User.countDocuments({ role: "survey_officer" });
@@ -34,6 +44,9 @@ export const getDashboardMetrics = asyncHandler(async (req, res) => {
     totalUsers,
     activeUsersLastMonth: activeUsers,
     pendingTransactions,
+     pendingKyc,
+    pendingLandRegistry,
+    pendingLandTransfer,
     userRoles: {
       totalCitizens,
       totalSurveyOfficers,

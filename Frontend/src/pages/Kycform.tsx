@@ -185,8 +185,14 @@ const KYCForm: React.FC = () => {
         "citizenshipIssuedDistrict",
         data.citizenshipIssuedDistrict
       );
-      formData.append("citizenshipIssuedDate.bs", data.citizenshipIssuedDate.bs);
-formData.append("citizenshipIssuedDate.ad", data.citizenshipIssuedDate.ad);
+      formData.append(
+        "citizenshipIssuedDate.bs",
+        data.citizenshipIssuedDate.bs
+      );
+      formData.append(
+        "citizenshipIssuedDate.ad",
+        data.citizenshipIssuedDate.ad
+      );
 
       if (data.photo instanceof File) {
         formData.append("photo", data.photo);

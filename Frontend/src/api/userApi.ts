@@ -26,7 +26,7 @@ export const loginUser = async (userData: { email: string; password: string }) =
 // userkyc 
 export const userKyc = async (kycData: FormData) => {
   try {
-    const response = await axiosInstance.post("/kyc", kycData); // ✅ No custom headers here
+    const response = await axiosInstance.post("/kyc", kycData); 
     return response.data;
   } catch (error) {
     console.error("Error submitting KYC:", error);

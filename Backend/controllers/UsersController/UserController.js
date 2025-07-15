@@ -256,6 +256,7 @@ if (user.role !== "admin" && user.role !== "land_officer") {
         name: user.name,
         role: user.role,
         email: user.email,
+        kycStatus: user.kyc?.verificationStatus,
       },
     });
   } catch (error) {
