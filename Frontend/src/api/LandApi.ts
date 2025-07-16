@@ -33,3 +33,19 @@ export const getAllLandsWithOwners = async () => {
     throw error;
   }
 }
+
+export const landTransferRequest = async (landId: string, toAddress: string) => {
+  try {
+    const response = await axiosInstance.post("/transfer/initiate", {
+      landId,
+      toAddress,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error initiating land transfer:", error);
+    throw error;
+  }
+}
+
+
+

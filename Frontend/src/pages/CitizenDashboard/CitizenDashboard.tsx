@@ -5,12 +5,13 @@ import { Sidebar } from "./Sidebar"
 import { Header } from "./Header"
 import { MyLands } from "./section/MyLands"
 import { SearchRecords } from "./section/SearchRecords"
-import { TransferLand } from "./section/TransferLand"
+// import LandTransferForm, { TransferLand } from "./section/TransferLand"
 import { VerifyCertificate } from "./section/VerifyCertificate"
 import { KYCStatus } from "./section/KycStatus"
 import { TransactionHistory } from "./section/TransactionHistory"
 import { ProfileSettings } from "./section/ProfileSetting"
 import LandRegistrationForm from "./section/LandRegistry"
+import LandTransferForm from "./section/TransferLand"
 
 export default function CitizenDashboard() {
   const [activeSection, setActiveSectionState] = useState("my-lands")
@@ -36,7 +37,7 @@ export default function CitizenDashboard() {
       case "search":
         return <SearchRecords />
       case "transfer":
-        return <TransferLand />
+        return <LandTransferForm />
       case "verify":
         return <VerifyCertificate />
       case "kyc":

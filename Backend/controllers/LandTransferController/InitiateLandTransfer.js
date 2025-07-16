@@ -5,6 +5,7 @@ import User from "../../models/User.js";
 
 export const initiateLandTransfer = asyncHandler(async (req, res) => {
   const { landId, toAddress } = req.body;
+  console.log("Initiate Land Transfer Request:", req.body);
 
   if (!landId || !toAddress) {
     return res.status(400).json({ message: "landId and toAddress are required" });
@@ -16,12 +17,21 @@ export const initiateLandTransfer = asyncHandler(async (req, res) => {
   }
 
   try {
+
+     // ✅ Check if a pending transfer already exists for the landId
+    const existingTransfer = await Transfer.findOne({ landId: landId.toString(), status: 'pending' });
+
+    if (existingTransfer) {
+      return res.status(409).json({ message: "A pending transfer already exists for this landId." });
+    }
+    
     // Interact with smart contract
     const tx = await contract.initiateTransfer(landId, toAddress);
     await tx.wait();
 
     // Get user info from decoded JWT
    const fromUser = await User.findOne({ walletAddress: req.user.walletAddress.toLowerCase() });
+   console.log(fromUser, "fromUser");
 if (!fromUser) {
   return res.status(404).json({ message: "Sender not found in DB." });
 }

@@ -1,99 +1,141 @@
+import  { useState } from 'react';
+import { Send, Loader2 } from 'lucide-react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { landTransferRequest } from '../../../api/LandApi';
 
-import { useState } from "react"
-import { ArrowRightLeft } from "lucide-react"
+const LandTransferForm = () => {
+  const [formData, setFormData] = useState({
+    landId: '',
+    toAddress: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-const myLands = [
-  {
-    id: "1",
-    plotNo: "PLT-2024-001",
-    location: "Sector 15, Block A, New Delhi",
-  },
-  {
-    id: "2",
-    plotNo: "PLT-2024-002",
-    location: "Industrial Area, Gurgaon",
-  },
-]
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-export function TransferLand() {
-  const [selectedLand, setSelectedLand] = useState("")
-  const [transferTo, setTransferTo] = useState("")
-  const [transferReason, setTransferReason] = useState("")
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    // Basic validation
+    if (!formData.landId || !formData.toAddress) {
+      toast.error('Please fill in all fields', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Validate Ethereum address format (basic check)
+    if (!/^0x[a-fA-F0-9]{40}$/.test(formData.toAddress)) {
+      toast.error('Invalid recipient wallet address', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+  const response = await landTransferRequest(formData.landId, formData.toAddress);
+  const data = response.data;
+
+  if (response.status === 200) {
+    toast.success(`Transfer initiated! Tx: ${data.txHash}`, {
+      position: 'top-right',
+      autoClose: 5000,
+    });
+    setFormData({ landId: '', toAddress: '' });
+  } else {
+    toast.error(data.message || 'Transfer initiation failed', {
+      position: 'top-right',
+      autoClose: 3000,
+    });
+  }
+} catch (error: any) {
+  let errorMessage = 'An unexpected error occurred';
+
+  if (error.response && error.response.data) {
+    errorMessage = error.response.data.message || error.response.data.error || errorMessage;
+  } else if (error.message) {
+    errorMessage = error.message;
+  }
+
+  toast.error('Error: ' + errorMessage, {
+    position: 'top-right',
+    autoClose: 3000,
+  });
+}
+ finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-gray-900">Initiate Land Transfer</h2>
-        <p className="text-gray-600">Transfer land ownership to another user</p>
-      </div>
-
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Transfer Details</h3>
-          <p className="text-gray-600 mb-6">Fill in the details to initiate a land transfer</p>
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="select-land" className="block text-sm font-medium text-gray-700 mb-1">
-                Select Land to Transfer
-              </label>
-              <select
-                id="select-land"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                value={selectedLand}
-                onChange={(e) => setSelectedLand(e.target.value)}
-              >
-                <option value="">Select a property</option>
-                {myLands.map((land) => (
-                  <option key={land.id} value={land.id}>
-                    {land.plotNo} - {land.location}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="transfer-to" className="block text-sm font-medium text-gray-700 mb-1">
-                Transfer To (User ID/Email)
-              </label>
-              <input
-                id="transfer-to"
-                type="text"
-                placeholder="Enter recipient's user ID or email"
-                value={transferTo}
-                onChange={(e) => setTransferTo(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="transfer-reason" className="block text-sm font-medium text-gray-700 mb-1">
-                Reason for Transfer
-              </label>
-              <input
-                id="transfer-reason"
-                type="text"
-                placeholder="Sale, Gift, Inheritance, etc."
-                value={transferReason}
-                onChange={(e) => setTransferReason(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-
-            <button
-              disabled={!selectedLand || !transferTo}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                !selectedLand || !transferTo
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
-            >
-              <ArrowRightLeft className="h-4 w-4" />
-              Initiate Transfer
-            </button>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <ToastContainer />
+      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
+          <Send className="mr-2" /> Initiate Land Transfer
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="landId" className="block text-sm font-medium text-gray-700">
+              Land ID
+            </label>
+            <input
+              type="text"
+              id="landId"
+              name="landId"
+              value={formData.landId}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+              placeholder="Enter Land ID"
+              disabled={isLoading}
+            />
           </div>
-        </div>
+          <div>
+            <label htmlFor="toAddress" className="block text-sm font-medium text-gray-700">
+              Recipient Wallet Address
+            </label>
+            <input
+              type="text"
+              id="toAddress"
+              name="toAddress"
+              value={formData.toAddress}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+              placeholder="Enter recipient address (0x...)"
+              disabled={isLoading}
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="animate-spin mr-2" size={20} />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2" size={20} />
+                Initiate Transfer
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default LandTransferForm;
