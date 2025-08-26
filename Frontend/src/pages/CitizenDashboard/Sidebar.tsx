@@ -2,7 +2,6 @@
 
 import {
   Home,
-  Search,
   ArrowRightLeft,
   Shield,
   User,
@@ -15,7 +14,6 @@ import {
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
-
 interface SidebarProps {
   activeSection: string
   setActiveSection: (section: string) => void
@@ -27,31 +25,72 @@ interface UserType {
   name: string
   email: string
   role: string
+  walletAddress?: string // Make walletAddress optional to handle cases where it’s not yet set
+  kycStatus: string
   id: string
 }
 
 const sidebarItems = [
   { id: "my-lands", label: "My Lands", icon: Home },
-  { id: "search", label: "Search Records", icon: Search },
   { id: "transfer", label: "Transfer Land", icon: ArrowRightLeft },
   { id: "verify", label: "Verify Certificate", icon: Shield },
   { id: "kyc", label: "KYC Status", icon: User },
   { id: "history", label: "Transaction History", icon: History },
   { id: "upload", label: "Land Registration", icon: Upload },
   { id: "profile", label: "Profile Settings", icon: Settings },
+  { id: "finalized", label: "Finalized Transfers", icon: CheckCircle },
 ]
+
+// Function to decode JWT token
+function decodeJWT(token: string) {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Error decoding JWT:', error)
+    return null
+  }
+}
 
 export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSidebarOpen }: SidebarProps) {
   const [user, setUser] = useState<UserType | null>(null)
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user")
+    const token = localStorage.getItem("token")
+
     console.log("Stored User:", storedUser)
-    if (storedUser) {
+    console.log("Stored Token:", token)
+
+    if (storedUser && token) {
       try {
         const parsedUser = JSON.parse(storedUser)
-        console.log("userdetail", parsedUser)
-        setUser(parsedUser)
+        console.log("Parsed User:", parsedUser)
+
+        // Decode the token to get walletAddress
+        const decodedToken = decodeJWT(token)
+        if (decodedToken && decodedToken.walletAddress && !parsedUser.walletAddress) {
+          // Update user object with walletAddress
+          const updatedUser = {
+            ...parsedUser,
+            walletAddress: decodedToken.walletAddress,
+          }
+
+          // Save updated user to local storage
+          localStorage.setItem("user", JSON.stringify(updatedUser))
+          console.log("Updated User with Wallet Address:", updatedUser)
+          setUser(updatedUser)
+        } else {
+          // If walletAddress already exists or token decoding fails, use the parsed user
+          setUser(parsedUser)
+        }
       } catch (error) {
         console.error("Failed to parse user from localStorage:", error)
       }
@@ -86,7 +125,11 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate text-gray-900">{user?.name || "Unknown User"}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email || "No Email"}</p>
-            <p className="text-xs text-gray-500">ID: {user?.id?.slice(0, 8).toUpperCase()}</p>
+            <p className="text-xs text-gray-500 truncate">
+             Address: {user?.walletAddress 
+    ? `${user.walletAddress.slice(0, 3).toUpperCase()}...${user.walletAddress.slice(-6).toUpperCase()}`
+    : "No Wallet"}
+            </p>
           </div>
         </div>
 
@@ -101,9 +144,7 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
               }`}
             >
               <CheckCircle className="h-3 w-3" />
-              <span className="font-medium">
-               Verified
-              </span>
+              <span className="font-medium">{user?.kycStatus || "Unknown"}</span>
             </div>
           </div>
 

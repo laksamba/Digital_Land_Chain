@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Sidebar } from "./Sidebar"
 import { Header } from "./Header"
 import { MyLands } from "./section/MyLands"
-import { SearchRecords } from "./section/SearchRecords"
 // import LandTransferForm, { TransferLand } from "./section/TransferLand"
 import { VerifyCertificate } from "./section/VerifyCertificate"
 import { KYCStatus } from "./section/KycStatus"
@@ -12,6 +11,9 @@ import { TransactionHistory } from "./section/TransactionHistory"
 import { ProfileSettings } from "./section/ProfileSetting"
 import LandRegistrationForm from "./section/LandRegistry"
 import LandTransferForm from "./section/TransferLand"
+import { ToastContainer } from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css';
+import UserTransfers from "./section/FinalizedTransfer"
 
 export default function CitizenDashboard() {
   const [activeSection, setActiveSectionState] = useState("my-lands")
@@ -34,10 +36,11 @@ export default function CitizenDashboard() {
     switch (activeSection) {
       case "my-lands":
         return <MyLands />
-      case "search":
-        return <SearchRecords />
       case "transfer":
         return <LandTransferForm />
+
+      case "finalized":
+        return <UserTransfers/>
       case "verify":
         return <VerifyCertificate />
       case "kyc":
@@ -48,13 +51,24 @@ export default function CitizenDashboard() {
         return <ProfileSettings />
       case "upload":
         return <LandRegistrationForm />
-      default:
-        return <MyLands />
-    }
+        default:
+          return <MyLands />
+      }
   }
 
   return (
     <div className="flex h-screen bg-background">
+       <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
@@ -69,6 +83,18 @@ export default function CitizenDashboard() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        
+           <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
         <Header setSidebarOpen={setSidebarOpen} />
         <main className="flex-1 overflow-auto p-6">{renderContent()}</main>
       </div>

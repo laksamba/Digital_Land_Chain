@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { AppSidebar } from "./Sidebar"
 import {DashboardOverview }from "./DashboardOverview"
-import { TransferRequests } from "./LandTransferRequest"
+import TransferRequests  from "./LandTransferRequest"
 import { KYCReview } from "./KycReview"
 import { RegistryRequests } from "./RegistryRequest"
 import { LandRegistry } from "./LandManagement"

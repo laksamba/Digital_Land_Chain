@@ -36,14 +36,14 @@ const menuItems = [
     title: "KYC Review",
     icon: Shield,
     description: "Verify citizen documents",
-    count: 8,
+    
   },
   {
     id: "registry",
     title: "Registry Requests",
     icon: ClipboardList,
     description: "Land registration requests",
-    count: 15,
+
   },
   {
     id: "disputes",
@@ -164,36 +164,15 @@ export function AppSidebar({ activeSection, setActiveSection, isOpen }: AppSideb
                   <item.icon className="h-4 w-4" />
                   <span>{item.title}</span>
                 </div>
-                {item.count > 0 && (
+                {/* {item.count > 0 && (
                   <span className="px-2 py-1 bg-gray-200 text-gray-700 rounded-full text-xs">{item.count}</span>
-                )}
+                )} */}
               </button>
             ))}
           </nav>
         </div>
 
-        {/* Quick Stats */}
-        <div className="mb-6">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Quick Stats</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Today's Reviews</span>
-              <span className="font-medium">23</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Pending Approvals</span>
-              <span className="font-medium text-orange-600">43</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Certificates Issued</span>
-              <span className="font-medium text-green-600">8</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Active Disputes</span>
-              <span className="font-medium text-red-600">3</span>
-            </div>
-          </div>
-        </div>
+       
       </div>
 
       {/* Footer */}

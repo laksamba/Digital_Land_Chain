@@ -46,7 +46,7 @@ export const finalizeTransfer = asyncHandler(async (req, res) => {
 
     res.json({ message: "Ownership transferred successfully", txHash: tx.hash });
   } catch (err) {
-    console.error("Finalize Transfer Error:", err.message);
+    // console.error("Finalize Transfer Error:", err.message);
     res.status(500).json({ message: "Finalization failed", error: err.message });
   }
 });

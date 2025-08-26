@@ -6,6 +6,7 @@ import upload from "../middleware/multer.js";
 import { getLandWithOwnerDetails } from "../controllers/LandController/GetlandDetails.js";
 import { rejectLandRegistration } from "../controllers/LandController/RejectLandRegistration.js";
 import { getAllLandsWithOwners } from "../controllers/LandController/getAllLandsWithOwners.js";
+import { getUserTransfers } from "../controllers/LandController/UserPendingLand.js";
 
 const router = express.Router();
 
@@ -47,6 +48,9 @@ router.get(
   restrictTo("land_officer", "admin"),
   getAllLandsWithOwners
 )
+
+router.get("/PendingTransfer", authMiddleware,
+   getUserTransfers );
   
 
 export default router;

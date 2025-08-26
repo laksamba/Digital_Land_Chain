@@ -181,7 +181,7 @@ export function KYCReview() {
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">KYC ID</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Citizen</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Property</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">District</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Documents</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>

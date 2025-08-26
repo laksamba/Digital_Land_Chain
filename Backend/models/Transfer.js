@@ -7,13 +7,11 @@ const transferSchema = new mongoose.Schema({
     required: true,
   },
   fromUser: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // Wallet address of sender
     required: true,
   },
   toUser: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    type: String, // Wallet address of recipient
     required: true,
   },
   transactionHash: {

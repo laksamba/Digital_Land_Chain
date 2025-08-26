@@ -5,6 +5,7 @@ import { finalizeTransfer } from "../controllers/LandTransferController/finalize
 import { verifyCertificate } from "../controllers/LandTransferController/verifyCertificateHash.js";
 import { getLandDetails } from "../controllers/LandTransferController/viewLandDetails.js";
 import { authMiddleware, restrictTo } from "../middleware/MiddleWare.js";
+import { getAllTransfers } from "../controllers/LandController/PendingLandTransfer.js";
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.post(
   restrictTo("citizen"),
   initiateLandTransfer
 );
-router.post(
+router.put(
   "/approve/:landId",
   authMiddleware,
   restrictTo("land_officer"),
@@ -39,4 +40,10 @@ router.get(
   getLandDetails
 );
 
+router.get(
+  "/pending",
+  authMiddleware,
+  restrictTo("land_officer"),
+  getAllTransfers
+);
 export default router;

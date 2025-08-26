@@ -30,7 +30,11 @@ import { useState, useEffect } from "react";
   };
 
 
-export function DashboardOverview() {
+interface DashboardOverviewProps {
+  onNavigate?: (section: string) => void;
+}
+
+export function DashboardOverview({ }: DashboardOverviewProps) {
   const handleQuickAction = (section: string) => {
     console.log(`Navigating to ${section}`);
   };

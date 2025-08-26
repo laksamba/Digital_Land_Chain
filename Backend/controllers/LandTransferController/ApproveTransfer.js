@@ -33,7 +33,7 @@ export const approveTransfer = asyncHandler(async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Approve Transfer Error:", err.message);
+    // console.error("Approve Transfer Error:", err.message);
     res.status(500).json({ message: "Approval failed", error: err.message });
   }
 });

@@ -19,9 +19,9 @@ export function RegistryRequests() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [showModal, setShowModal] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log(" Fetching all registry requests");
     dispatch(fetchAllLands());
   }, [dispatch]);
 
@@ -30,42 +30,46 @@ export function RegistryRequests() {
       req.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       req.area.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
       req.owner?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (searchTerm && match) {
-      console.log(" Matched:", req._id);
-    }
-
     return match;
   });
 
   const handleApprove = async (land: any) => {
-    console.log("Approving land:", land._id, "with requestId:", land.requestId);
-
     if (!land.requestId) {
       console.error("❌ Missing requestId for this land.");
       return;
     }
 
-    await dispatch(
-      approveLandById({
-        landId: land._id,
-        requestId: land.requestId,
-      })
-    );
-
-    await dispatch(fetchAllLands());
-    setShowModal(false);
+    setActionLoadingId(land._id);
+    try {
+      await dispatch(
+        approveLandById({
+          landId: land._id,
+          requestId: land.requestId,
+        })
+      );
+      await dispatch(fetchAllLands());
+      setShowModal(false);
+    } catch (error) {
+      console.error("Approval error:", error);
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const handleReject = async (landId: string) => {
-    console.log(" Rejecting land:", landId);
-    await dispatch(rejectLandById(landId));
-    await dispatch(fetchAllLands());
-    setShowModal(false);
+    setActionLoadingId(landId);
+    try {
+      await dispatch(rejectLandById(landId));
+      await dispatch(fetchAllLands());
+      setShowModal(false);
+    } catch (error) {
+      console.error("Rejection error:", error);
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const openModal = (request: any) => {
-    console.log(" Viewing details for:", request._id);
     setSelectedRequest(request);
     setShowModal(true);
   };
@@ -117,10 +121,7 @@ export function RegistryRequests() {
             type="text"
             placeholder="Search registry requests..."
             value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              console.log("🔍 Search term:", e.target.value);
-            }}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 w-64"
           />
         </div>
@@ -176,9 +177,7 @@ export function RegistryRequests() {
                     <td className="px-4 py-4 text-sm text-gray-900">
                       {request.area}
                     </td>
-                    <td className="px-4 py-4">
-                      {getStatusBadge(request.status)}
-                    </td>
+                    <td className="px-4 py-4">{getStatusBadge(request.status)}</td>
                     <td className="px-4 py-4 text-sm font-medium">
                       <button
                         onClick={() => openModal(request)}
@@ -243,7 +242,6 @@ export function RegistryRequests() {
                 </div>
               </div>
 
-              {/* 👇 IPFS Document Links */}
               <div>
                 <label className="text-sm font-medium text-gray-700">
                   IPFS Documents
@@ -276,22 +274,33 @@ export function RegistryRequests() {
             <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
+                disabled={actionLoadingId !== null}
                 className="px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleReject(selectedRequest._id)}
-                className="inline-flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700"
+                disabled={actionLoadingId === selectedRequest._id}
+                className="inline-flex items-center gap-1 px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700 disabled:opacity-50"
               >
-                <X className="h-4 w-4" />
+                {actionLoadingId === selectedRequest._id ? (
+                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
                 Reject
               </button>
               <button
                 onClick={() => handleApprove(selectedRequest)}
-                className="inline-flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700"
+                disabled={actionLoadingId === selectedRequest._id}
+                className="inline-flex items-center gap-1 px-4 py-2 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 disabled:opacity-50"
               >
-                <Check className="h-4 w-4" />
+                {actionLoadingId === selectedRequest._id ? (
+                  <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
                 Approve
               </button>
             </div>
