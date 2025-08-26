@@ -14,7 +14,7 @@ import LandTransferForm from "./section/TransferLand"
 import { ToastContainer } from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 import UserTransfers from "./section/FinalizedTransfer"
-
+import RequestSurveyer from "./section/RequestSurveyer"
 export default function CitizenDashboard() {
   const [activeSection, setActiveSectionState] = useState("my-lands")
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -51,6 +51,8 @@ export default function CitizenDashboard() {
         return <ProfileSettings />
       case "upload":
         return <LandRegistrationForm />
+      case "request-surveyer":
+        return <RequestSurveyer />
         default:
           return <MyLands />
       }

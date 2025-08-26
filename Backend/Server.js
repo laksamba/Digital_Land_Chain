@@ -7,7 +7,7 @@ import landRoutes from './routes/landRoutes.js';
 import { errorHandler } from './middleware/MiddleWare.js';
 import adminRoutes from './routes/adminRoutes.js';
 import transferRoutes from './routes/transferRoutes.js';
-
+import surveyRoutes from './routes/surveyRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -33,6 +33,7 @@ app.use('/api', authRoutes);
 app.use('/api',landRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/transfer", transferRoutes);
+app.use("/api/survey", surveyRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

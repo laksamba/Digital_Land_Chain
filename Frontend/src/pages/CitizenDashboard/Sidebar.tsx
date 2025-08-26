@@ -11,6 +11,7 @@ import {
   MapPin,
   CheckCircle,
   Settings,
+  UserPlus
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -39,6 +40,7 @@ const sidebarItems = [
   { id: "upload", label: "Land Registration", icon: Upload },
   { id: "profile", label: "Profile Settings", icon: Settings },
   { id: "finalized", label: "Finalized Transfers", icon: CheckCircle },
+  { id: "request-surveyer", label: "Request Surveyer", icon: UserPlus },
 ]
 
 // Function to decode JWT token
