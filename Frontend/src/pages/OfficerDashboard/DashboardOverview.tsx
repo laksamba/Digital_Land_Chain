@@ -6,66 +6,148 @@ import {
   ClipboardList,
   Scale,
   Award,
-  Database,
   TrendingUp,
   Clock,
   CheckCircle,
   AlertTriangle,
-  Users,
-  MapPin,
 } from "lucide-react";
-import { getDashboardMetrics } from "../../api/adminApi";
-import { useState, useEffect } from "react";
+import { getDashboardMetrics, getRecentActivity } from "../../api/adminApi";
+import { useState, useEffect, type JSX } from "react";
 
+function getTimeAgo(date: Date) {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
 
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const months = Math.floor(days / 30);
 
- const getTimeAgo = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMin = Math.floor(diffMs / (1000 * 60));
-
-    if (diffMin === 0) return "just now";
-    if (diffMin === 1) return "1 min ago";
-    return `${diffMin} min ago`;
-  };
-
+  if (months > 0) return `${months} month${months > 1 ? "s" : ""} ago`;
+  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  if (minutes > 0) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
+  return "Just now";
+}
 
 interface DashboardOverviewProps {
   onNavigate?: (section: string) => void;
 }
 
-export function DashboardOverview({ }: DashboardOverviewProps) {
-  const handleQuickAction = (section: string) => {
-    console.log(`Navigating to ${section}`);
-  };
-
+export function DashboardOverview({}: DashboardOverviewProps) {
   const [metrics, setMetrics] = useState<any>(null);
+  const [recentActivities, setRecentActivities] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isLoadingActivities, setIsLoadingActivities] = useState<boolean>(true);
+  const [activityError, setActivityError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
+    const fetchData = async () => {
       try {
-        const metrics = await getDashboardMetrics();
-        console.log("Dashboard Metrics:", metrics);
-        setMetrics(metrics);
-       setLastUpdated(new Date()); 
+        // Fetch dashboard metrics
+        const metricsData = await getDashboardMetrics();
+        console.log("Dashboard Metrics:", metricsData);
+        setMetrics(metricsData);
+
+        // Fetch recent activities
+        try {
+          setIsLoadingActivities(true);
+          const activitiesData = await getRecentActivity();
+          console.log("Recent Activities Response:", activitiesData);
+
+          // Check if response has recentUsers and recentLands
+          if (
+            activitiesData &&
+            activitiesData.recentUsers &&
+            activitiesData.recentLands
+          ) {
+            const combinedActivities = [
+              ...activitiesData.recentUsers
+                .filter((user: any) => user.kyc?.verified) // Only include verified users
+                .map((user: any) => ({
+                  type: "kyc_submitted",
+                  description: `KYC verified for ${
+                    user.kyc?.fullName?.english || user.name || "Unknown User"
+                  }`,
+                  timestamp:
+                    user.kyc?.verifiedAt ||
+                    user.createdAt ||
+                    new Date().toISOString(),
+                })),
+              ...activitiesData.recentLands
+                .filter((land: any) => land.status === "verified") // Only include verified lands
+                .map((land: any) => ({
+                  type: "land_verified",
+                  description: `Land ID ${land.landId} in ${land.location} verified`,
+                  timestamp:
+                    land.verifiedAt ||
+                    land.createdAt ||
+                    new Date().toISOString(),
+                })),
+            ].sort(
+              (a, b) =>
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime()
+            );
+
+            console.log("Combined Activities:", combinedActivities);
+            setRecentActivities(combinedActivities);
+          } else {
+            console.warn("Invalid activities data format:", activitiesData);
+            setRecentActivities([]);
+            setActivityError("Invalid activities data format");
+          }
+        } catch (error) {
+          console.error("Error fetching recent activities:", error);
+          setRecentActivities([]);
+          setActivityError("Failed to load recent activities");
+        }
+
+        setLastUpdated(new Date());
       } catch (error) {
         console.error("Error fetching dashboard metrics:", error);
+        setMetrics(null);
+        setActivityError("Failed to load data");
+      } finally {
+        setIsLoadingActivities(false);
       }
     };
-    fetchMetrics();
+    fetchData();
   }, []);
+
   useEffect(() => {
-  const interval = setInterval(() => {
-    if (lastUpdated) {
-      setLastUpdated(new Date(lastUpdated)); 
-    }
-  }, 60000); 
+    const interval = setInterval(() => {
+      if (lastUpdated) {
+        setLastUpdated(new Date(lastUpdated));
+      }
+    }, 60000);
 
-  return () => clearInterval(interval);
-}, [lastUpdated]);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
 
- 
+  // Map activity types to icons
+  const activityIcons: { [key: string]: JSX.Element } = {
+    transfer_approved: (
+      <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
+    ),
+    kyc_submitted: <Shield className="h-4 w-4 mt-0.5 text-blue-600" />,
+    dispute_filed: <AlertTriangle className="h-4 w-4 mt-0.5 text-red-600" />,
+    certificate_issued: <Award className="h-4 w-4 mt-0.5 text-purple-600" />,
+    land_verified: <ClipboardList className="h-4 w-4 mt-0.5 text-purple-600" />,
+    unknown: <CheckCircle className="h-4 w-4 mt-0.5 text-gray-600" />,
+  };
+
+  // Map activity types to titles
+  const activityTitles: { [key: string]: string } = {
+    transfer_approved: "Transfer Request Approved",
+    kyc_submitted: "KYC Documents Submitted",
+    dispute_filed: "Dispute Filed",
+    certificate_issued: "Certificate Issued",
+    land_verified: "Land Verified",
+    unknown: "Unknown Activity",
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -96,9 +178,8 @@ export function DashboardOverview({ }: DashboardOverviewProps) {
                 Transfer Requests
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {metrics?.pendingLandTransfer}
+                {metrics?.pendingLandTransfer ?? "Loading..."}
               </p>
-              <p className="text-xs text-gray-500 mt-1">+3 today</p>
             </div>
             <div className="p-2 rounded-lg bg-blue-50">
               <FileText className="h-5 w-5 text-blue-600" />
@@ -112,9 +193,8 @@ export function DashboardOverview({ }: DashboardOverviewProps) {
             <div>
               <p className="text-sm font-medium text-gray-600">KYC Requests</p>
               <p className="text-2xl font-bold text-gray-900">
-                {metrics?.pendingKyc}
+                {metrics?.pendingKyc ?? "Loading..."}
               </p>
-              <p className="text-xs text-gray-500 mt-1">+2 pending</p>
             </div>
             <div className="p-2 rounded-lg bg-green-50">
               <Shield className="h-5 w-5 text-green-600" />
@@ -130,9 +210,8 @@ export function DashboardOverview({ }: DashboardOverviewProps) {
                 Registry Requests
               </p>
               <p className="text-2xl font-bold text-gray-900">
-                {metrics?.pendingLandRegistry}
+                {metrics?.pendingLandRegistry ?? "Loading..."}
               </p>
-              <p className="text-xs text-gray-500 mt-1">+5 this week</p>
             </div>
             <div className="p-2 rounded-lg bg-purple-50">
               <ClipboardList className="h-5 w-5 text-purple-600" />
@@ -147,8 +226,7 @@ export function DashboardOverview({ }: DashboardOverviewProps) {
               <p className="text-sm font-medium text-gray-600">
                 Active Disputes
               </p>
-              <p className="text-2xl font-bold text-gray-900">3</p>
-              <p className="text-xs text-gray-500 mt-1">1 resolved</p>
+              <p className="text-2xl font-bold text-gray-900">0</p>
             </div>
             <div className="p-2 rounded-lg bg-red-50">
               <Scale className="h-5 w-5 text-red-600" />
@@ -166,159 +244,39 @@ export function DashboardOverview({ }: DashboardOverviewProps) {
             Recent Activities
           </div>
           <div className="p-4 space-y-4">
-            <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100">
-              <CheckCircle className="h-4 w-4 mt-0.5 text-green-600" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Transfer Request Approved
-                </h4>
-                <p className="text-xs text-gray-600">
-                  TR001 - Plot 123, Sector A approved for John Doe
-                </p>
-                <p className="text-xs text-gray-500 mt-1">10 minutes ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100">
-              <Shield className="h-4 w-4 mt-0.5 text-blue-600" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  KYC Documents Submitted
-                </h4>
-                <p className="text-xs text-gray-600">
-                  New documents received for property verification
-                </p>
-                <p className="text-xs text-gray-500 mt-1">25 minutes ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100">
-              <AlertTriangle className="h-4 w-4 mt-0.5 text-red-600" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Dispute Filed
-                </h4>
-                <p className="text-xs text-gray-600">
-                  Boundary dispute for Plot 789, Zone C
-                </p>
-                <p className="text-xs text-gray-500 mt-1">1 hour ago</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100">
-              <Award className="h-4 w-4 mt-0.5 text-purple-600" />
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Certificate Issued
-                </h4>
-                <p className="text-xs text-gray-600">
-                  Digital certificate CERT002 issued successfully
-                </p>
-                <p className="text-xs text-gray-500 mt-1">2 hours ago</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Workload Progress */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="p-4 border-b border-gray-200 flex items-center gap-2 text-lg font-semibold text-gray-900">
-            <Users className="h-5 w-5" />
-            Today's Workload
-          </div>
-          <div className="p-4 space-y-4">
-            {[
-              ["Transfer Reviews", 23, 35, 66],
-              ["KYC Verifications", 18, 26, 69],
-              ["Registry Processing", 12, 27, 44],
-              ["Dispute Resolutions", 8, 11, 73],
-            ].map(([title, done, total, percent], index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="font-medium text-gray-900">{title}</span>
-                  <span className="text-gray-600">
-                    {done}/{total}
-                  </span>
+            {isLoadingActivities ? (
+              <p className="text-sm text-gray-600">Loading activities...</p>
+            ) : activityError ? (
+              <p className="text-sm text-red-600">{activityError}</p>
+            ) : recentActivities.length > 0 ? (
+              recentActivities.map((activity, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 p-3 rounded-lg border border-gray-100"
+                >
+                  {activityIcons[activity.type] || (
+                    <CheckCircle className="h-4 w-4 mt-0.5 text-gray-600" />
+                  )}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">
+                      {activityTitles[activity.type] || "Unknown Activity"}
+                    </h4>
+                    <p className="text-xs text-gray-600">
+                      {activity.description || "No description available"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {activity.timestamp
+                        ? getTimeAgo(new Date(activity.timestamp))
+                        : "Unknown time"}
+                    </p>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full"
-                    style={{ width: `${percent}%` }}
-                  ></div>
-                </div>
-                <p className="text-xs text-gray-500">{percent}% completed</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200 text-lg font-semibold text-gray-900">
-          Quick Actions
-        </div>
-        <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <button
-            onClick={() => handleQuickAction("transfers")}
-            className="quick-action"
-          >
-            <FileText className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700">Review Transfers</span>
-          </button>
-          <button
-            onClick={() => handleQuickAction("kyc")}
-            className="quick-action"
-          >
-            <Shield className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700">Verify KYC</span>
-          </button>
-          <button
-            onClick={() => handleQuickAction("registry")}
-            className="quick-action"
-          >
-            <ClipboardList className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700">Process Registry</span>
-          </button>
-          <button
-            onClick={() => handleQuickAction("disputes")}
-            className="quick-action"
-          >
-            <Scale className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700">Handle Disputes</span>
-          </button>
-          <button
-            onClick={() => handleQuickAction("certificates")}
-            className="quick-action"
-          >
-            <Award className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700">Issue Certificates</span>
-          </button>
-          <button
-            onClick={() => handleQuickAction("manage")}
-            className="quick-action"
-          >
-            <Database className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700">Manage Registry</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Map Overview */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200 text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <MapPin className="h-5 w-5" />
-          Property Distribution Overview
-        </div>
-        <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center p-4 border border-gray-200 rounded-lg">
-            <div className="text-2xl font-bold text-blue-600">1,247</div>
-            <p className="text-sm text-gray-600">Total Properties</p>
-          </div>
-          <div className="text-center p-4 border border-gray-200 rounded-lg">
-            <div className="text-2xl font-bold text-green-600">1,198</div>
-            <p className="text-sm text-gray-600">Active Properties</p>
-          </div>
-          <div className="text-center p-4 border border-gray-200 rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">49</div>
-            <p className="text-sm text-gray-600">Under Review</p>
+              ))
+            ) : (
+              <p className="text-sm text-gray-600">
+                No recent activities found.
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -20,49 +20,55 @@ export default function FinalizedTransfer() {
 
   // ✅ Fetch transfers
   useEffect(() => {
-    const fetchTransfers = async () => {
-      try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await provider.getSigner();
-        const userAddress = await signer.getAddress();
-        setCurrentUser(userAddress);
+ const fetchTransfers = async () => {
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const userAddress = await signer.getAddress();
+    setCurrentUser(userAddress);
 
-        const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, provider);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, provider);
 
-        const filter = contract.filters.TransferInitiated();
-        const events = await contract.queryFilter(filter);
+    const filter = contract.filters.TransferInitiated();
+    const events = await contract.queryFilter(filter);
 
-        const allTransfers = await Promise.all(
-          events.map(async (e: any) => {
-            const landId = e.args.landId.toString();
-            const from = e.args.from;
-            const to = e.args.to;
+    const allTransfers = await Promise.all(
+      events.map(async (e: any) => {
+        const landId = e.args.landId.toString();
+        const from = e.args.from;
+        const to = e.args.to;
 
-            let status: "initiated" | "finalized" = "initiated";
-            try {
-              const currentOwner = await contract.ownerOf(landId);
-              if (currentOwner.toLowerCase() === userAddress.toLowerCase()) {
-                status = "finalized";
-              }
-            } catch {
-              status = "initiated";
-            }
+        let status: "initiated" | "finalized" = "initiated";
+        try {
+          const currentOwner = await contract.ownerOf(landId);
+          if (currentOwner.toLowerCase() === userAddress.toLowerCase()) {
+            status = "finalized";
+          }
+        } catch {
+          status = "initiated";
+        }
 
-            return { landId, from, to, status };
-          })
-        );
+        return { landId, from, to, status };
+      })
+    );
 
-        // Remove duplicates by landId
-        const uniqueTransfers = Array.from(
-          new Map(allTransfers.map(t => [t.landId, t])).values()
-        );
+    // ✅ Only show transfers where current user is the recipient
+    const userTransfers = allTransfers.filter(
+      (t) => t.to.toLowerCase() === userAddress.toLowerCase()
+    );
 
-        setTransfers(uniqueTransfers);
-      } catch (error) {
-        console.error(error);
-        toast.error("Error fetching transfers");
-      }
-    };
+    // Remove duplicates by landId
+    const uniqueTransfers = Array.from(
+      new Map(userTransfers.map(t => [t.landId, t])).values()
+    );
+
+    setTransfers(uniqueTransfers);
+  } catch (error) {
+    console.error(error);
+    toast.error("Error fetching transfers");
+  }
+};
+
 
     fetchTransfers();
   }, []);

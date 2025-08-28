@@ -15,7 +15,8 @@ interface Transfer {
 
 export default function TransferRequests() {
   const [transfers, setTransfers] = useState<Transfer[]>([]);
-  const [loading, setLoading] = useState(false);
+  // Changed loading to an object to track loading state per landId
+  const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
 
   const fetchTransfers = async () => {
     try {
@@ -61,48 +62,51 @@ export default function TransferRequests() {
     }
   };
 
-const approveTransfer = async (landId: string) => {
-  try {
-    setLoading(true);
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, signer);
+  const approveTransfer = async (landId: string) => {
+    try {
+      // Set loading to true for this specific landId
+      setLoading((prev) => ({ ...prev, [landId]: true }));
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, signer);
 
-    // Do NOT manually pass nonce; let MetaMask handle it
-    const tx = await contract.approveTransfer(landId);
-    await tx.wait();
+      // Do NOT manually pass nonce; let MetaMask handle it
+      const tx = await contract.approveTransfer(landId);
+      await tx.wait();
 
-    toast.success("Transfer approved successfully!");
-    fetchTransfers();
-  } catch (err: any) {
-    console.error(err);
-    toast.error("Error approving transfer");
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Transfer approved successfully!");
+      fetchTransfers();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error approving transfer");
+    } finally {
+      // Reset loading for this specific landId
+      setLoading((prev) => ({ ...prev, [landId]: false }));
+    }
+  };
 
-const finalizeTransfer = async (landId: string) => {
-  try {
-    setLoading(true);
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, signer);
+  const finalizeTransfer = async (landId: string) => {
+    try {
+      // Set loading to true for this specific landId
+      setLoading((prev) => ({ ...prev, [landId]: true }));
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, signer);
 
-    // Do NOT manually pass nonce; let MetaMask handle it
-    const tx = await contract.finalizeTransfer(landId);
-    await tx.wait();
+      // Do NOT manually pass nonce; let MetaMask handle it
+      const tx = await contract.finalizeTransfer(landId);
+      await tx.wait();
 
-    toast.success("Transfer finalized successfully!");
-    fetchTransfers();
-  } catch (err: any) {
-    console.error(err);
-    toast.error("Error finalizing transfer");
-  } finally {
-    setLoading(false);
-  }
-};
-
+      toast.success("Transfer finalized successfully!");
+      fetchTransfers();
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Error finalizing transfer");
+    } finally {
+      // Reset loading for this specific landId
+      setLoading((prev) => ({ ...prev, [landId]: false }));
+    }
+  };
 
   useEffect(() => {
     fetchTransfers();
@@ -135,21 +139,23 @@ const finalizeTransfer = async (landId: string) => {
             <div className="flex gap-3 mt-3">
               {!t.approved && (
                 <button
-                  disabled={loading}
+                  // Use loading state specific to this landId
+                  disabled={loading[t.landId] || false}
                   onClick={() => approveTransfer(t.landId)}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
+                  {loading[t.landId] ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
                   Approve
                 </button>
               )}
               {t.approved && (
                 <button
-                  disabled={loading}
+                  // Use loading state specific to this landId
+                  disabled={loading[t.landId] || false}
                   onClick={() => finalizeTransfer(t.landId)}
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  {loading[t.landId] ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                   Finalize
                 </button>
               )}

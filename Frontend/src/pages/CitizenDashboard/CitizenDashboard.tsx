@@ -5,7 +5,6 @@ import { Sidebar } from "./Sidebar"
 import { Header } from "./Header"
 import { MyLands } from "./section/MyLands"
 // import LandTransferForm, { TransferLand } from "./section/TransferLand"
-import { VerifyCertificate } from "./section/VerifyCertificate"
 import { KYCStatus } from "./section/KycStatus"
 import { TransactionHistory } from "./section/TransactionHistory"
 import { ProfileSettings } from "./section/ProfileSetting"
@@ -41,8 +40,6 @@ export default function CitizenDashboard() {
 
       case "finalized":
         return <UserTransfers/>
-      case "verify":
-        return <VerifyCertificate />
       case "kyc":
         return <KYCStatus />
       case "history":

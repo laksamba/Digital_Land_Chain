@@ -4,12 +4,9 @@ import {
   FileText,
   Shield,
   ClipboardList,
-  Scale,
-  Award,
-  Database,
   Building2,
   User,
-  Settings,
+
   Phone,
   Mail,
 } from "lucide-react"
@@ -45,25 +42,13 @@ const menuItems = [
     description: "Land registration requests",
 
   },
+
+
   {
-    id: "disputes",
-    title: "Dispute Panel",
-    icon: Scale,
-    description: "Resolve ownership conflicts",
-    count: 3,
-  },
-  {
-    id: "certificates",
-    title: "Digital Certificates",
-    icon: Award,
-    description: "Issue blockchain certificates",
-    count: 5,
-  },
-  {
-    id: "manage",
-    title: "Land Registry",
-    icon: Database,
-    description: "Manage land metadata",
+    id: "history",
+    title: " Transaction History",
+    icon: Building2,
+    description: "Manage land records",
     count: 0,
   },
 ]
@@ -92,7 +77,7 @@ export function AppSidebar({ activeSection, setActiveSection, isOpen }: AppSideb
       setOfficerProfile({
         name: user.name || "Officer",
         title: "Land Officer",
-        department: user.department || "Municipal Land Registry",
+        department: user.department || "Land Revenue  Registry",
         email: user.email || "N/A",
         phone: user.phone || "N/A",
         joinDate: new Date(user.createdAt).toLocaleDateString() || "N/A",
@@ -181,10 +166,6 @@ export function AppSidebar({ activeSection, setActiveSection, isOpen }: AppSideb
           <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
             <User className="h-4 w-4" />
             <span>Profile Settings</span>
-          </button>
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-            <Settings className="h-4 w-4" />
-            <span>System Settings</span>
           </button>
           <div className="p-4 border-t border-gray-200">
             <LogoutButton />

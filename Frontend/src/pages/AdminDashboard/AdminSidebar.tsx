@@ -1,4 +1,4 @@
-import { Home, Users, Settings, Shield, FileText, AlertTriangle } from "lucide-react";
+import { Home, Users, Settings, Shield } from "lucide-react";
 import LogoutButton from "../../components/Logout";
 
 interface AdminSidebarProps {
@@ -9,10 +9,8 @@ interface AdminSidebarProps {
 const menuItems = [
   { id: "overview", label: "Dashboard Overview", icon: Home },
   { id: "users", label: "User Management", icon: Users },
-  { id: "settings", label: "System Settings", icon: Settings },
   { id: "roles", label: "Roles & Permissions", icon: Shield },
-  { id: "audit", label: "Audit Logs", icon: FileText },
-  { id: "disputes", label: "Dispute Management", icon: AlertTriangle },
+  { id: "settings", label: "System Settings", icon: Settings },
 ];
 
 export function AdminSidebar({ activeSection, setActiveSection }: AdminSidebarProps) {

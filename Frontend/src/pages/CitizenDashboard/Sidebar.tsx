@@ -3,7 +3,6 @@
 import {
   Home,
   ArrowRightLeft,
-  Shield,
   User,
   History,
   Upload,
@@ -33,7 +32,6 @@ interface UserType {
 const sidebarItems = [
   { id: "my-lands", label: "My Lands", icon: Home },
   { id: "transfer", label: "Transfer Land", icon: ArrowRightLeft },
-  { id: "verify", label: "Verify Certificate", icon: Shield },
   { id: "kyc", label: "KYC Status", icon: User },
   { id: "history", label: "Transaction History", icon: History },
   { id: "upload", label: "Land Registration", icon: Upload },
@@ -146,16 +144,6 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
               <CheckCircle className="h-3 w-3" />
               <span className="font-medium">{user?.kycStatus || "Unknown"}</span>
             </div>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500">Properties Owned</span>
-            <span className="font-medium text-gray-900">2</span>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500">Active Transfers</span>
-            <span className="font-medium text-gray-900">1</span>
           </div>
         </div>
       </div>

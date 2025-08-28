@@ -6,8 +6,7 @@ import {DashboardOverview }from "./DashboardOverview"
 import TransferRequests  from "./LandTransferRequest"
 import { KYCReview } from "./KycReview"
 import { RegistryRequests } from "./RegistryRequest"
-import { LandRegistry } from "./LandManagement"
-import { DisputePanel } from "./DisputePanel"
+import { TransactionHistory } from "../CitizenDashboard/section/TransactionHistory"
 
 import { Bell, Menu } from "lucide-react"
 
@@ -40,10 +39,8 @@ export default function LandOfficerDashboard() {
         return <KYCReview />
       case "registry":
         return <RegistryRequests />
-      case "disputes":
-        return <DisputePanel />
-      case "manage":
-        return <LandRegistry />
+      case "history":
+        return <TransactionHistory />
       default:
         return <DashboardOverview onNavigate={handleSectionChange} />
     }
@@ -59,12 +56,10 @@ export default function LandOfficerDashboard() {
         return "KYC Document Review"
       case "registry":
         return "Registry Requests"
-      case "disputes":
-        return "Dispute Panel"
-      case "certificates":
-        return "Digital Certificates"
       case "manage":
         return "Land Registry Management"
+      case "history":
+        return "Transaction History"
       default:
         return "Dashboard Overview"
     }
