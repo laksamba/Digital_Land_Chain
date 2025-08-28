@@ -7,6 +7,7 @@ import { getLandWithOwnerDetails } from "../controllers/LandController/GetlandDe
 import { rejectLandRegistration } from "../controllers/LandController/RejectLandRegistration.js";
 import { getAllLandsWithOwners } from "../controllers/LandController/getAllLandsWithOwners.js";
 import { getUserTransfers } from "../controllers/LandController/UserPendingLand.js";
+import { generateOwnershipPDFController } from "../controllers/LandController/pdfDetailsControllers.js";
 
 const router = express.Router();
 
@@ -51,6 +52,9 @@ router.get(
 
 router.get("/PendingTransfer", authMiddleware,
    getUserTransfers );
+
+  //  pdf generation route
+ router.get("/land/:landId/pdf", authMiddleware, restrictTo("citizen"), generateOwnershipPDFController);
   
 
 export default router;

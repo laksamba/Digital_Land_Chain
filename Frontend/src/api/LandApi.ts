@@ -85,5 +85,18 @@ export const getUserPendingLand = async () => {
 };
 
 
+export const downloadOwnershipPDF = async (landId: string): Promise<Blob> => {
+  try {
+    const response = await axiosInstance.get(`/land/${landId}/pdf`, {
+      responseType: 'blob', // Important for binary data
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error downloading ownership PDF:", error);
+    throw error;
+  }
+}
+
+
 
 

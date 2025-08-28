@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { MapPin, Eye, Download } from "lucide-react";
 import { fetchUserLands } from "../../../api/userApi";
+import { downloadOwnershipPDF } from "../../../api/LandApi";
 
 interface LandRecord {
   _id: string;
@@ -53,6 +54,25 @@ export function MyLands() {
 
     if (userId) fetchData();
   }, [userId]);
+
+  // Handle PDF download
+  const handleDownloadPDF = async (landId: string) => {
+    try {
+      const pdfBlob = await downloadOwnershipPDF(landId);
+      // Create a URL for the blob and trigger download
+      const url = window.URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `ownership_${landId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to download PDF:", error);
+      setError("Failed to download the ownership certificate. Please try again.");
+    }
+  };
 
   // Filter lands based on selected status
   const filteredLands = selectedStatus === "All"
@@ -148,7 +168,10 @@ export function MyLands() {
                     <Eye className="h-4 w-4" />
                     View Details
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">
+                  <button
+                    onClick={() => handleDownloadPDF(land.landId)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
                     <Download className="h-4 w-4" />
                     Download Certificate
                   </button>
