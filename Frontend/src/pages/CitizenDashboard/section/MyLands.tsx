@@ -19,18 +19,28 @@ export function MyLands() {
   const [error, setError] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
 
+  // Get userId from localStorage
   const user = localStorage.getItem("user");
   let userId: string | undefined = undefined;
   if (user) {
     try {
       const parsedUser = JSON.parse(user);
       userId = parsedUser.id;
+      console.log("→ User ID from localStorage:", userId);
     } catch (error) {
-      console.error("Failed to parse user from localStorage:", error);
+      console.error("→ Failed to parse user from localStorage:", error);
       setError("Failed to retrieve user information.");
+      setLoading(false);
+      return null; // Early return if user parsing fails
     }
+  } else {
+    console.error("→ No user found in localStorage");
+    setError("User not logged in.");
+    setLoading(false);
+    return null;
   }
 
+  // Fetch lands when userId is available
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,14 +48,17 @@ export function MyLands() {
           throw new Error("User ID is missing.");
         }
         setLoading(true);
+        setError(null); // Clear previous errors
         const lands = await fetchUserLands(userId);
+        console.log("→ Raw lands data:", lands);
+        
         if (!lands || !Array.isArray(lands)) {
           throw new Error("Invalid data format received from API.");
         }
-        console.log("Fetched Lands:", lands);
+        console.log("→ Fetched Lands for userId:", userId, "Lands:", lands);
         setMyLands(lands);
       } catch (err: any) {
-        console.error("Error fetching lands:", err);
+        console.error("→ Error fetching lands for userId:", userId, "Error:", err);
         setError(err.message || "Failed to fetch your land records. Please try again later.");
       } finally {
         setLoading(false);
@@ -59,7 +72,6 @@ export function MyLands() {
   const handleDownloadPDF = async (landId: string) => {
     try {
       const pdfBlob = await downloadOwnershipPDF(landId);
-      // Create a URL for the blob and trigger download
       const url = window.URL.createObjectURL(new Blob([pdfBlob], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
@@ -69,7 +81,7 @@ export function MyLands() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Failed to download PDF:", error);
+      console.error("→ Failed to download PDF for landId:", landId, "Error:", error);
       setError("Failed to download the ownership certificate. Please try again.");
     }
   };

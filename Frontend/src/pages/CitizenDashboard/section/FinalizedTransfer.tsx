@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { toast } from "react-toastify";
 import { Loader2, CheckCircle } from "lucide-react";
-import {ContractAbi} from "../../../contractUtils/Blockchain";
+import { finalizeLandTransfer } from "../../../api/LandApi";
+import { ContractAbi } from "../../../contractUtils/Blockchain";
 
 const CONTRACT_ADDRESS = "0x3482740C57292B4b5FDae9D8F0dbfF633951ed9F";
 
@@ -18,78 +19,78 @@ export default function FinalizedTransfer() {
   const [loadingIds, setLoadingIds] = useState<Record<string, boolean>>({});
   const [currentUser, setCurrentUser] = useState<string>("");
 
-  // ✅ Fetch transfers
   useEffect(() => {
- const fetchTransfers = async () => {
-  try {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const userAddress = await signer.getAddress();
-    setCurrentUser(userAddress);
+    const fetchTransfers = async () => {
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const userAddress = await signer.getAddress();
+        setCurrentUser(userAddress);
 
-    const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, provider);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, provider);
 
-    const filter = contract.filters.TransferInitiated();
-    const events = await contract.queryFilter(filter);
+        const filter = contract.filters.TransferInitiated();
+        const events = await contract.queryFilter(filter);
 
-    const allTransfers = await Promise.all(
-      events.map(async (e: any) => {
-        const landId = e.args.landId.toString();
-        const from = e.args.from;
-        const to = e.args.to;
+        const allTransfers = await Promise.all(
+          events.map(async (e: any) => {
+            const landId = e.args.landId.toString();
+            const from = e.args.from;
+            const to = e.args.to;
 
-        let status: "initiated" | "finalized" = "initiated";
-        try {
-          const currentOwner = await contract.ownerOf(landId);
-          if (currentOwner.toLowerCase() === userAddress.toLowerCase()) {
-            status = "finalized";
-          }
-        } catch {
-          status = "initiated";
-        }
+            let status: "initiated" | "finalized" = "initiated";
+            try {
+              const land = await contract.lands(landId);
+              if (land.owner.toLowerCase() === to.toLowerCase()) {
+                status = "finalized";
+              }
+            } catch {
+              status = "initiated";
+            }
 
-        return { landId, from, to, status };
-      })
-    );
+            return { landId, from, to, status };
+          })
+        );
 
-    // ✅ Only show transfers where current user is the recipient
-    const userTransfers = allTransfers.filter(
-      (t) => t.to.toLowerCase() === userAddress.toLowerCase()
-    );
+        const userTransfers = allTransfers.filter(
+          (t) => t.to.toLowerCase() === userAddress.toLowerCase()
+        );
 
-    // Remove duplicates by landId
-    const uniqueTransfers = Array.from(
-      new Map(userTransfers.map(t => [t.landId, t])).values()
-    );
+        const uniqueTransfers = Array.from(
+          new Map(userTransfers.map((t) => [t.landId, t])).values()
+        );
 
-    setTransfers(uniqueTransfers);
-  } catch (error) {
-    console.error(error);
-    toast.error("Error fetching transfers");
-  }
-};
-
+        setTransfers(uniqueTransfers);
+      } catch (error) {
+        console.error(error);
+        toast.error("Error fetching transfers");
+      }
+    };
 
     fetchTransfers();
   }, []);
 
-  // ✅ Finalize only when current user is recipient
-  const finalizeTransfer = async (landId: string) => {
+  const finalizeTransfer = async (landId: string, fromWallet: string) => {
     try {
-      setLoadingIds(prev => ({ ...prev, [landId]: true }));
+      setLoadingIds((prev) => ({ ...prev, [landId]: true }));
 
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, ContractAbi, signer);
 
       const tx = await contract.finalizeTransfer(landId);
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log("→ Transaction receipt:", receipt);
+
+      // Send fromWallet along with landId and txHash
+    const backendResponse = await finalizeLandTransfer(landId, tx.hash, fromWallet);
+
+      console.log("→ Backend finalize response:", backendResponse);
 
       toast.success(`Land ${landId} finalized!`);
 
-      // refresh UI after success
-      setTransfers(prev =>
-        prev.map(t =>
+      setTransfers((prev) =>
+        prev.map((t) =>
           t.landId === landId ? { ...t, status: "finalized" } : t
         )
       );
@@ -97,7 +98,7 @@ export default function FinalizedTransfer() {
       console.error(error);
       toast.error(error.reason || "Error finalizing transfer");
     } finally {
-      setLoadingIds(prev => ({ ...prev, [landId]: false }));
+      setLoadingIds((prev) => ({ ...prev, [landId]: false }));
     }
   };
 
@@ -130,7 +131,7 @@ export default function FinalizedTransfer() {
                 </>
               ) : currentUser.toLowerCase() === t.to.toLowerCase() ? (
                 <button
-                  onClick={() => finalizeTransfer(t.landId)}
+                  onClick={() => finalizeTransfer(t.landId, t.from)} // Pass fromWallet
                   disabled={loadingIds[t.landId]}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                 >

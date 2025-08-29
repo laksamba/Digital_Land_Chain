@@ -11,27 +11,46 @@ async function getLandOwnershipData(landId) {
   const land = await Land.findOne({ landId }).populate("owner");
   if (!land) throw new Error("Land not found");
 
-  // 2️⃣ Blockchain: current owner & ownership history
-  const [currentOwner] = await contract.getLand(landId);
-  const ownershipHistory = await contract.getOwnershipHistory(landId);
+  // 2️⃣ Blockchain: current owner, full land hash & ownership history
+  let currentOwner, landHash, ownershipHistory;
+  try {
+    const landData = await contract.getLand(landId);
+    console.log("Raw getLand output:", landData); // Debug log
+    [currentOwner, , landHash] = landData; // Destructure, skip isActive
+    ownershipHistory = await contract.getOwnershipHistory(landId);
 
-  return { land, currentOwner, ownershipHistory };
+    // Validate landHash
+    if (!landHash || typeof landHash !== "string" || landHash.trim() === "") {
+      console.warn(`Invalid land hash for landId ${landId}: ${landHash}`);
+      landHash = "N/A"; // Fallback to avoid breaking PDF generation
+    }
+  } catch (error) {
+    console.error(`Error fetching blockchain data for landId ${landId}:`, error);
+    currentOwner = "N/A";
+    landHash = "N/A";
+    ownershipHistory = [];
+  }
+
+  return { land, currentOwner, landHash, ownershipHistory };
 }
 
 // Generate PDF
 async function generatePDF(data) {
   return new Promise((resolve, reject) => {
+
     const doc = new PDFDocument({
-      margin: 40,
-      size: "A4",
+      margin: 30,
+      size: 'A4',
       info: {
         Title: `Land Ownership Certificate - ${data.land.landId}`,
-        Author: "Digital Land Chain",
+        Author: 'Digital Land Chain Authority',
+        Subject: 'Official Land Ownership Document',
+        Creator: 'Digital Land Chain System',
         CreationDate: new Date(),
       },
     });
 
-    const pdfsDir = path.resolve("./pdfs");
+    const pdfsDir = path.resolve('./pdfs');
     const fileName = `ownership_${data.land.landId}.pdf`;
     const filePath = path.join(pdfsDir, fileName);
 
@@ -41,162 +60,222 @@ async function generatePDF(data) {
         fs.mkdirSync(pdfsDir, { recursive: true });
       }
     } catch (error) {
-      console.error("Failed to create pdfs directory:", error);
-      reject(new Error("Could not create directory for PDF storage"));
+      console.error('Failed to create pdfs directory:', error);
+      reject(new Error('Could not create directory for PDF storage'));
       return;
     }
 
     // Create write stream and handle errors
     const writeStream = fs.createWriteStream(filePath);
-    writeStream.on("error", (error) => {
-      console.error("Error writing PDF file:", error);
-      reject(new Error("Failed to write PDF file"));
+    writeStream.on('error', (error) => {
+      console.error('Error writing PDF file:', error);
+      reject(new Error('Failed to write PDF file'));
     });
-    writeStream.on("finish", () => {
+    writeStream.on('finish', () => {
       resolve(filePath);
     });
 
     doc.pipe(writeStream);
 
     // Fonts
-    doc.registerFont("Bold", "Helvetica-Bold");
-    doc.registerFont("Regular", "Helvetica");
-    doc.registerFont("Italic", "Helvetica-Oblique");
+    doc.registerFont('Bold', 'Times-Bold');
+    doc.registerFont('Regular', 'Times-Roman');
+    doc.registerFont('Italic', 'Times-Italic');
 
-    // Header
+    // Page Border
     doc
-      .rect(30, 30, 535, 80)
+      .rect(15, 15, 565, 812)
+      .lineWidth(2.5)
+      .strokeColor('#1A3C6B')
+      .stroke();
+
+    // Header Section
+    doc
+      .rect(15, 15, 565, 110)
+      .fillColor('#F5F6F5')
+      .fill()
+      .rect(15, 15, 565, 110)
       .lineWidth(1)
-      .strokeColor("#003087")
+      .strokeColor('#1A3C6B')
+      .stroke();
+
+    doc
+      .font('Bold')
+      .fontSize(28)
+      .fillColor('#1A3C6B')
+      .text('Land Ownership Certificate', 0, 30, { align: 'center' });
+    doc
+      .font('Regular')
+      .fontSize(14)
+      .fillColor('#333333')
+      .text('Digital Land Chain Authority', 0, 65, { align: 'center' });
+    doc
+      .font('Italic')
+      .fontSize(10)
+      .fillColor('#666666')
+      .text('Ministry of Land Management and Blockchain Registry', 0, 85, { align: 'center' });
+
+    // Official Seal Placeholder (Text-based for simplicity)
+    doc
+      .circle(520, 50, 30)
+      .lineWidth(1)
+      .strokeColor('#1A3C6B')
       .stroke();
     doc
-      .font("Bold")
-      .fontSize(24)
-      .fillColor("#FF0000")
-      .text("Land Ownership Certificate", 0, 50, { align: "center" });
-    doc
-      .font("Regular")
-      .fontSize(12)
-      .fillColor("#333333")
-      .text("Digital Land Chain Authority", 0, 80, { align: "center" });
-    doc.moveDown(2);
+      .font('Bold')
+      .fontSize(8)
+      .fillColor('#1A3C6B')
+      .text('Official Seal', 505, 45, { align: 'center' });
 
-    // Certificate Number and Issue Date
+    // Certificate Metadata
     const certificateNumber = `DLC-${data.land.landId}-${Date.now()}`;
-    const issueDate = new Date().toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
+    const issueDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
+    const validUntil = new Date(new Date().setFullYear(new Date().getFullYear() + 5)).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
     doc
-      .font("Regular")
+      .font('Regular')
       .fontSize(10)
-      .fillColor("#666666")
-      .text(`Certificate No: ${certificateNumber}`, 40, 120)
-      .text(`Issue Date: ${issueDate}`, 40, 135);
+      .fillColor('#333333')
+      .text(`Certificate No.: ${certificateNumber}`, 30, 130)
+      .text(`Issue Date: ${issueDate}`, 30, 145)
+      .text(`Valid Until: ${validUntil}`, 30, 160);
     doc.moveDown(2);
 
     // Watermark
     doc
-      .font("Italic")
-      .fontSize(40)
-      .fillColor("#E6E6E6")
-      .opacity(0.3)
-      .rotate(-45, { origin: [300, 400] })
-      .text("OFFICIAL CERTIFICATE", 150, 350, { align: "center" })
-      .rotate(45, { origin: [300, 400] })
+      .font('Italic')
+      .fontSize(50)
+      .fillColor('#D3D3D3')
+      .opacity(0.2)
+      .rotate(-45, { origin: [297.5, 420.5] })
+      .text('OFFICIAL DOCUMENT', 100, 350, { align: 'center' })
+      .rotate(45, { origin: [297.5, 420.5] })
       .opacity(1)
-      .fillColor("#333333");
+      .fillColor('#333333');
 
     // Land Details Section
     doc
-      .font("Bold")
+      .font('Bold')
       .fontSize(16)
-      .fillColor("#FF0000")
-      .text("Land Details", 40, 170, { underline: true });
+      .fillColor('#1A3C6B')
+      .text('Land Property Details', 30, 190, { underline: true });
     doc
-      .font("Regular")
-      .fontSize(12)
-      .fillColor("#333333")
-      .text(`Land ID: ${data.land.landId || "N/A"}`, 40, 195)
-      .text(`Area: ${data.land.area ? `${data.land.area} sq.m` : "N/A"}`, 40, 210)
-      .text(`Status: ${data.land.status || "N/A"}`, 40, 225)
-      .text(`Location: ${data.land.location || "N/A"}`, 40, 240);
+      .font('Regular')
+      .fontSize(11)
+      .fillColor('#333333')
+      .text(`Land ID: ${data.land.landId || 'N/A'}`, 40, 215)
+      .text(`Area: ${data.land.area ? `${data.land.area} square meters` : 'N/A'}`, 40, 230)
+      .text(`Status: ${data.land.status || 'N/A'}`, 40, 245)
+      .text(`Location: ${data.land.location || 'N/A'}`, 40, 260)
+      .text(`Coordinates: ${data.land.coordinates || 'N/A'}`, 40, 275);
     doc.moveDown(2);
 
     // Owner Details Section
     const owner = data.land.owner || {};
     doc
-      .font("Bold")
+      .font('Bold')
       .fontSize(16)
-      .fillColor("#FF0000")
-      .text("Owner Details", 40, 270, { underline: true });
+      .fillColor('#1A3C6B')
+      .text('Registered Owner', 30, 305, { underline: true });
     doc
-      .font("Regular")
-      .fontSize(12)
-      .fillColor("#333333")
-      .text(`Name: ${owner.name || "N/A"}`, 40, 295)
-      .text(`Email: ${owner.email || "N/A"}`, 40, 310)
-      .text(`Wallet Address: ${owner.walletAddress || "N/A"}`, 40, 325)
-      .text(`Full Name (English): ${owner.kyc?.fullName?.english || "N/A"}`, 40, 340)
-      .text(`Citizenship Number: ${owner.kyc?.citizenshipNumber || "N/A"}`, 40, 370);
+      .font('Regular')
+      .fontSize(11)
+      .fillColor('#333333')
+      .text(`Name: ${owner.name || 'N/A'}`, 40, 330)
+      .text(`Full Name (English): ${owner.kyc?.fullName?.english || 'N/A'}`, 40, 345)
+      .text(`Citizenship No.: ${owner.kyc?.citizenshipNumber || 'N/A'}`, 40, 360)
+      .text(`Email: ${owner.email || 'N/A'}`, 40, 375)
+      .text(`Wallet Address: ${owner.walletAddress || 'N/A'}`, 40, 390);
     doc.moveDown(2);
 
-    // Blockchain Ownership Section
+    // Blockchain Verification Section
     doc
-      .font("Bold")
+      .font('Bold')
       .fontSize(16)
-      .fillColor("#FF0000")
-      .text("Blockchain Verification", 40, 400, { underline: true });
+      .fillColor('#1A3C6B')
+      .text('Blockchain Authentication', 30, 420, { underline: true });
     doc
-      .font("Regular")
-      .fontSize(12)
-      .fillColor("#333333")
-      .text(`Current Owner (on-chain): ${data.currentOwner || "N/A"}`, 40, 425);
+      .font('Regular')
+      .fontSize(11)
+      .fillColor('#333333')
+      .text(`Current Owner(On-Chain) : ${data.currentOwner || 'N/A'}`, 40, 445)
+      .text('Land Hash :', 40, 460);
     doc
-      .font("Regular")
-      .fontSize(12)
-      .text("Ownership History (on-chain):", 40, 440);
+      .font('Regular')
+      .fontSize(9)
+      .text(data.landHash || 'N/A', 50, 475, { width: 500, lineBreak: true });
     doc
-      .font("Regular")
-      .fontSize(10)
+      .font('Regular')
+      .fontSize(11)
+      .text('Ownership History (On-Chain):', 40, 500);
+    doc
+      .font('Regular')
+      .fontSize(9)
       .text(
-        data.ownershipHistory?.length > 0 ? data.ownershipHistory.join(", ") : "N/A",
+        data.ownershipHistory?.length > 0 ? data.ownershipHistory.join(', ') : 'N/A',
         50,
-        455,
+        515,
         { width: 500, lineBreak: true }
       );
     doc.moveDown(2);
 
-    // Footer
+    // Certification Statement
     doc
-      .rect(30, 720, 535, 60)
-      .lineWidth(1)
-      .strokeColor("#003087")
-      .stroke();
-    doc
-      .font("Italic")
+      .font('Italic')
       .fontSize(10)
-      .fillColor("#666666")
+      .fillColor('#333333')
       .text(
-        "This certificate is issued by the Digital Land Chain Authority and verified on the blockchain.",
-        0,
-        740,
-        { align: "center" }
+        'This is to certify that the above particulars are true and correct as per the records maintained by the Digital Land Chain Authority. This certificate is issued under the authority of the Ministry of Land Management and Blockchain Registry.',
+        30,
+        550,
+        { width: 535, align: 'justify' }
       );
 
-    // Border for entire page
+    // Signature Section
     doc
-      .rect(20, 20, 555, 802)
-      .lineWidth(2)
-      .strokeColor("#003087")
+      .font('Bold')
+      .fontSize(12)
+      .fillColor('#1A3C6B')
+      .text('Authorized Signatory', 30, 620, { underline: true });
+    doc
+      .font('Regular')
+      .fontSize(10)
+      .fillColor('#333333')
+      // .text('Name: ___________________________', 30, 645)
+      .text('Designation: Registrar, Digital Land Chain Authority', 30, 660)
+      .text('Date: ' + issueDate, 30, 675);
+
+    // Footer
+    doc
+      .rect(15, 750, 565, 77)
+      .fillColor('#F5F6F5')
+      .fill()
+      .rect(15, 750, 565, 77)
+      .lineWidth(1)
+      .strokeColor('#1A3C6B')
       .stroke();
+    doc
+      .font('Italic')
+      .fontSize(9)
+      .fillColor('#666666')
+      .text(
+        'This certificate is an official document issued by the Digital Land Chain Authority under the Ministry of Land Management and Blockchain Registry. Unauthorized reproduction or alteration is strictly prohibited.',
+        30,
+        765,
+        { align: 'center', width: 535 }
+      );
 
     doc.end();
   });
 }
-
-
 
 // Controller
 export const generateOwnershipPDFController = async (req, res) => {

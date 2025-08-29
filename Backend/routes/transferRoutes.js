@@ -22,7 +22,7 @@ router.put(
   approveTransfer
 );
 router.post(
-  "/finalize/:landId",
+  "/finalize",
   authMiddleware,
   restrictTo("citizen"),
   finalizeTransfer

@@ -97,6 +97,13 @@ export const downloadOwnershipPDF = async (landId: string): Promise<Blob> => {
   }
 }
 
-
+export const finalizeLandTransfer = async (landId:string,txHash:string,fromWallet:string) => {
+  try {
+    const response = await axiosInstance.post(`/transfer/finalize`,{landId,txHash,fromWallet});
+    return response.data;
+  } catch (error) {
+    console.error("Error finalizing land transfer:", error);
+  }
+}
 
 

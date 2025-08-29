@@ -693,7 +693,7 @@ const contractABI = [
 ];
 
 // Initialize provider
-let provider;
+export let provider;
 try {
   provider = new ethers.JsonRpcProvider(providerUrl);
 } catch (error) {
@@ -710,4 +710,5 @@ try {
 
 // Initialize contract instances
 export const contract = new ethers.Contract(contractAddress, contractABI, provider); // For read-only operations
+
 export const contractWithSigner = new ethers.Contract(contractAddress, contractABI, wallet); // For transactions

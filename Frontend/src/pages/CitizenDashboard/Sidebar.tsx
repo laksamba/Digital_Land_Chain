@@ -31,12 +31,12 @@ interface UserType {
 
 const sidebarItems = [
   { id: "my-lands", label: "My Lands", icon: Home },
-  { id: "transfer", label: "Transfer Land", icon: ArrowRightLeft },
-  { id: "kyc", label: "KYC Status", icon: User },
-  { id: "history", label: "Transaction History", icon: History },
   { id: "upload", label: "Land Registration", icon: Upload },
-  { id: "profile", label: "Profile Settings", icon: Settings },
+  { id: "transfer", label: "Transfer Land", icon: ArrowRightLeft },
   { id: "finalized", label: "Finalized Transfers", icon: CheckCircle },
+  { id: "history", label: "Transaction History", icon: History },
+  { id: "kyc", label: "KYC Status", icon: User },
+  { id: "profile", label: "Profile Settings", icon: Settings },
 ]
 
 // Function to decode JWT token
@@ -123,6 +123,7 @@ export function Sidebar({ activeSection, setActiveSection, sidebarOpen, setSideb
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-sm truncate text-gray-900">{user?.name || "Unknown User"}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email || "No Email"}</p>
+            <p className="text-xs text-gray-500 truncate">Id: ... {user?.id.slice(-15) || "N/A"}</p>
             <p className="text-xs text-gray-500 truncate">
              Address: {user?.walletAddress 
     ? `${user.walletAddress.slice(0, 3).toUpperCase()}...${user.walletAddress.slice(-6).toUpperCase()}`
