@@ -37,6 +37,7 @@ const sidebarItems = [
   { id: "history", label: "Transaction History", icon: History },
   { id: "kyc", label: "KYC Status", icon: User },
   { id: "profile", label: "Profile Settings", icon: Settings },
+  { id: "document", label: "Document Upload", icon: Upload },
 ]
 
 // Function to decode JWT token

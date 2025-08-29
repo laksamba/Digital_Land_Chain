@@ -51,6 +51,14 @@ const menuItems = [
     description: "Manage land records",
     count: 0,
   },
+
+  {
+    id: "documents",
+    title: "Document Verification", 
+    icon: FileText,
+    description: "Verify uploaded documents",
+    count: 0,
+  },
 ]
 
 interface AppSidebarProps {

@@ -7,6 +7,7 @@ import TransferRequests  from "./LandTransferRequest"
 import { KYCReview } from "./KycReview"
 import { RegistryRequests } from "./RegistryRequest"
 import { TransactionHistory } from "../CitizenDashboard/section/TransactionHistory"
+import FetchDocuments from "../../components/FetchDocument"
 
 import { Bell, Menu } from "lucide-react"
 
@@ -41,6 +42,8 @@ export default function LandOfficerDashboard() {
         return <RegistryRequests />
       case "history":
         return <TransactionHistory />
+      case "documents":
+        return <FetchDocuments />
       default:
         return <DashboardOverview onNavigate={handleSectionChange} />
     }
@@ -60,6 +63,8 @@ export default function LandOfficerDashboard() {
         return "Land Registry Management"
       case "history":
         return "Transaction History"
+      case "documents":
+        return "Document verification"
       default:
         return "Dashboard Overview"
     }

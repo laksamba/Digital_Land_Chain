@@ -98,6 +98,7 @@ const LandRegistrationForm: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg border border-gray-100">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Land Registration</h2>
+        <p className='text-red-500'>Note: Input valid land Details and documents</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Location */}

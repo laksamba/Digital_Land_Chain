@@ -6,6 +6,8 @@ import { verifyCertificate } from "../controllers/LandTransferController/verifyC
 import { getLandDetails } from "../controllers/LandTransferController/viewLandDetails.js";
 import { authMiddleware, restrictTo } from "../middleware/MiddleWare.js";
 import { getAllTransfers } from "../controllers/LandController/PendingLandTransfer.js";
+import { createLand } from "../controllers/Documents/uploaddocsController.js";
+import { getAllDocuments } from "../controllers/Documents/fetchDocument.js";
 
 const router = express.Router();
 
@@ -46,4 +48,8 @@ router.get(
   restrictTo("land_officer"),
   getAllTransfers
 );
+
+// document routes
+router.post("/docsUpload" ,createLand );
+router.get("/fetchDocs", getAllDocuments );
 export default router;

@@ -13,6 +13,7 @@ import LandTransferForm from "./section/TransferLand"
 import { ToastContainer } from "react-toastify"
 import 'react-toastify/dist/ReactToastify.css';
 import UserTransfers from "./section/FinalizedTransfer"
+import DocumentUpload from "../../components/FileUpload"
 
 export default function CitizenDashboard() {
   const [activeSection, setActiveSectionState] = useState("my-lands")
@@ -48,6 +49,9 @@ export default function CitizenDashboard() {
         return <ProfileSettings />
       case "upload":
         return <LandRegistrationForm />
+
+      case "document":
+        return <DocumentUpload/>
         default:
           return <MyLands />
       }
